@@ -29,8 +29,8 @@ namespace subiekt_sfera_test
 //            sgt.KontrahenciManager.DodajKontrahenta();
 
 
-            Utils.DodajKontrahenta(sgt, "Ukaszz", "testowy ze sfery", "9123sd", "Poczesna", "Szkolna", "39");
-
+//            Utils.DodajKontrahenta(sgt, "Ukaszz", "testowy ze sfery", "9123sd", "Poczesna", "Szkolna", "39");
+            Utils.WstawDokumentPrzyjeciaPlatnosci(sgt,1,4, "test", 7,"PLN");
             //sgt.Okno.Widoczne = true;
 
             Console.ReadKey();

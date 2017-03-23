@@ -1,5 +1,7 @@
 ﻿using MySql.Data.MySqlClient;
 using System;
+using System.Security.Cryptography.X509Certificates;
+using InsERT;
 
 namespace subiekt_sfera_test
 {
@@ -15,7 +17,9 @@ namespace subiekt_sfera_test
         public static string PortalGamesUser = "admin8706_11";
         public static string PortalGamesPassword = "0NgFs9%Mg6";
 
-        public static void DodajKontrahenta(InsERT.Subiekt sgt, string nazwa, string nazwaPelna, string symbol, string miejscowosc, string ulica, string nrLokalu, string imie=null, string nazwisko=null, string panstwo=null, string kodPocztowy=null)
+        public static void DodajKontrahenta(InsERT.Subiekt sgt, string nazwa, string nazwaPelna, string symbol,
+            string miejscowosc, string ulica, string nrLokalu, string imie = null, string nazwisko = null,
+            string panstwo = null, string kodPocztowy = null)
         {
             try
             {
@@ -42,7 +46,6 @@ namespace subiekt_sfera_test
                 Console.WriteLine(e);
                 throw;
             }
-
         }
 
         public static void GetUsersFromPortalGames(InsERT.Subiekt sgt)
@@ -59,9 +62,10 @@ namespace subiekt_sfera_test
             {
                 using (MySqlCommand cmd = conn.CreateCommand())
                 {
-                    string sqlCommand = "SELECT c.user_id, c.address_street, c.address_city, c.address_zip, s.name as country, c.daddress_name, c.daddress_lastname, c.phone, c.company_name, c.loyality_points, c.discount, u.email " +
-                    "FROM customer c " +
-                    "JOIN user u ON(c.user_id = u.id) JOIN state s ON (s.id = c.address_state_id);";
+                    string sqlCommand =
+                        "SELECT c.user_id, c.address_street, c.address_city, c.address_zip, s.name as country, c.daddress_name, c.daddress_lastname, c.phone, c.company_name, c.loyality_points, c.discount, u.email " +
+                        "FROM customer c " +
+                        "JOIN user u ON(c.user_id = u.id) JOIN state s ON (s.id = c.address_state_id);";
 
                     cmd.CommandText = sqlCommand;
 
@@ -87,6 +91,17 @@ namespace subiekt_sfera_test
                     }
                 }
             }
+        }
+
+        public static void WstawDokumentPrzyjeciaPlatnosci(InsERT.Subiekt sgt, long id, int idKontrahenta, string tytul, decimal cena, string kurs)
+        {
+            var finDokument = sgt.FinManager.DodajDokumentKasowy(DokFinTypEnum.gtaDokFinTypKP, (int) id);
+            finDokument.Data = DateTime.Now;
+            finDokument.ObiektPowiazanyWstaw(DokFinObiektTypEnum.gtaDokFinObiektKontrahent, idKontrahenta);
+            finDokument.WartoscPoczatkowaWaluta = cena;
+            finDokument.Waluta = kurs;
+            finDokument.Tytulem = tytul;
+            finDokument.Zapisz();
         }
     }
 }

@@ -92,10 +92,18 @@ namespace subiekt_sfera_test
                 }
             }
         }
-
-        public static void WstawDokumentPrzyjeciaPlatnosci(InsERT.Subiekt sgt, long id, int idKontrahenta, string tytul, decimal cena, string kurs)
+        /// <summary>
+        /// Funkcja wystawia dokument przyjęcia płatności w Subiekcie - KP
+        /// </summary>
+        /// <param name="sgt">Obiekt klasy InsERT.Subiekt</param>
+        /// <param name="idKasy">Id kasy z której została wykonana operacja wystawienia dokumentu</param>
+        /// <param name="idKontrahenta">Id kontrahenta z bazy danych</param>
+        /// <param name="tytul">Tytul jaki bedzie widniał na dokumencie</param>
+        /// <param name="cena">Cena jaka została wystawiona na dokumencie</param>
+        /// <param name="kurs">Nazwa kursu waluty jaki ma przyjąć dokumen (np. PLN, USD, EUR)</param>
+        public static void WstawDokumentPrzyjeciaPlatnosci(InsERT.Subiekt sgt, long idKasy, int idKontrahenta, string tytul, decimal cena, string kurs)
         {
-            var finDokument = sgt.FinManager.DodajDokumentKasowy(DokFinTypEnum.gtaDokFinTypKP, (int) id);
+            var finDokument = sgt.FinManager.DodajDokumentKasowy(DokFinTypEnum.gtaDokFinTypKP, (int)idKasy);
             finDokument.Data = DateTime.Now;
             finDokument.ObiektPowiazanyWstaw(DokFinObiektTypEnum.gtaDokFinObiektKontrahent, idKontrahenta);
             finDokument.WartoscPoczatkowaWaluta = cena;
@@ -103,9 +111,18 @@ namespace subiekt_sfera_test
             finDokument.Tytulem = tytul;
             finDokument.Zapisz();
         }
-        public static void WstawDokumentWystawieniaPlatnosci(InsERT.Subiekt sgt, long id, int idKontrahenta, string tytul, decimal cena, string kurs)
+        /// <summary>
+        /// Funkcja wystawia dokument wystawienia płatności w Subiekcie - KW
+        /// </summary>
+        /// <param name="sgt">Obiekt klasy InsERT.Subiekt</param>
+        /// <param name="idKasy">Id kasy z której została wykonana operacja wystawienia dokumentu</param>
+        /// <param name="idKontrahenta">Id kontrahenta z bazy danych</param>
+        /// <param name="tytul">Tytul jaki bedzie widniał na dokumencie</param>
+        /// <param name="cena">Cena jaka została wystawiona na dokumencie</param>
+        /// <param name="kurs">Nazwa kursu waluty jaki ma przyjąć dokumen (np. PLN, USD, EUR)</param>
+        public static void WstawDokumentWystawieniaPlatnosci(InsERT.Subiekt sgt, long idKasy, int idKontrahenta, string tytul, decimal cena, string kurs)
         {
-            var finDokument = sgt.FinManager.DodajDokumentKasowy(DokFinTypEnum.gtaDokFinTypKW, (int)id);
+            var finDokument = sgt.FinManager.DodajDokumentKasowy(DokFinTypEnum.gtaDokFinTypKW, (int)idKasy);
             finDokument.Data = DateTime.Now;
             finDokument.ObiektPowiazanyWstaw(DokFinObiektTypEnum.gtaDokFinObiektKontrahent, idKontrahenta);
             finDokument.WartoscPoczatkowaWaluta = cena;

@@ -1,22 +1,12 @@
 ﻿using MySql.Data.MySqlClient;
 using System;
-
+using System.Configuration;
 using InsERT;
 
 namespace subiekt_sfera_test
 {
     public static class Utils
     {
-        public static string ServerGt = "KRYSTIAN\\INSERTGT";
-        public static string BazaGt = "test3";
-        public static string OperatorGt = "Szef";
-        public static string OperatorGThaslo = "";
-
-        public static string PortalGamesServer = "8706.m.tld.pl";
-        public static string PortalGamesBaza = "baza8706_11";
-        public static string PortalGamesUser = "admin8706_11";
-        public static string PortalGamesPassword = "0NgFs9%Mg6";
-
         public static void DodajKontrahenta(InsERT.Subiekt sgt, string nazwa, string nazwaPelna, string symbol,
             string miejscowosc, string ulica, string nrLokalu, string imie = null, string nazwisko = null,
             string panstwo = null, string kodPocztowy = null)
@@ -52,10 +42,10 @@ namespace subiekt_sfera_test
         {
             var portalGamesConnString = new MySqlConnectionStringBuilder
             {
-                Server = PortalGamesServer,
-                UserID = PortalGamesUser,
-                Password = PortalGamesPassword,
-                Database = PortalGamesBaza
+                Server = ConfigConnection.PortalGamesServer,
+                UserID = ConfigConnection.PortalGamesUser,
+                Password = ConfigConnection.PortalGamesPassword,
+                Database = ConfigConnection.PortalGamesBaza
             };
 
             using (MySqlConnection conn = new MySqlConnection(portalGamesConnString.ToString()))

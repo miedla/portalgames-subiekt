@@ -16,8 +16,8 @@ namespace subiekt_sfera_test
             InsERT.Subiekt sgt;
             gt.Produkt = InsERT.ProduktEnum.gtaProduktSubiekt;
 
-            gt.Serwer = Utils.ServerGt;//"(local)\\INSERTGT";
-            gt.Baza = Utils.BazaGt;//"test3";
+            gt.Serwer = ConfigConnection.ServerGt;//"(local)\\INSERTGT";
+            gt.Baza = ConfigConnection.BazaGt;//"test3";
             if (ConfigConnection.Uzytkownik != "")
             {
                 gt.Autentykacja = InsERT.AutentykacjaEnum.gtaAutentykacjaMieszana;//gtaAutentykacjaMieszana;
@@ -28,8 +28,8 @@ namespace subiekt_sfera_test
             {
                 gt.Autentykacja = InsERT.AutentykacjaEnum.gtaAutentykacjaWindows;//gtaAutentykacjaMieszana;
             }
-            gt.Operator = Utils.OperatorGt;//"Szef";
-            gt.OperatorHaslo = Utils.OperatorGThaslo;//"";
+            gt.Operator = ConfigConnection.OperatorGt;//"Szef";
+            gt.OperatorHaslo = ConfigConnection.OperatorGThaslo;//"";
             Debug.WriteLine("gt.Polaczenie: " + gt.Polaczenie.ConnectionString);
 
             sgt = (InsERT.Subiekt)gt.Uruchom((int)InsERT.UruchomDopasujEnum.gtaUruchomDopasuj, (int)InsERT.UruchomEnum.gtaUruchom);

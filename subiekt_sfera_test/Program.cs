@@ -26,9 +26,9 @@ namespace subiekt_sfera_test
 
             //sgt.KontrahenciManager.DodajKontrahenta();
 
-
-            Utils.DodajKontrahenta(sgt, "Ukaszz", "testowy ze sfery", "9123sd", "Poczesna", "Szkolna", "39");
-
+            Utils.DodajKontrahenta(sgt, "lukasz", "9291", "Poczesna", "Szkolna", 1, "42-262", "ukasz", "miedla");
+            //Utils.DodajKontrahenta(sgt, "Ukaszz", "testowy ze sfery", "9123sd", "Poczesna", "Szkolna", "39");
+            Utils.GetUsersFromPortalGames(sgt);
             //sgt.Okno.Widoczne = true;
 
             Console.ReadKey();

@@ -1,40 +1,90 @@
 ﻿using MySql.Data.MySqlClient;
 using System;
-using System.Configuration;
+using System.Linq;
+using System.Collections.Generic;
+
 using InsERT;
 
 namespace subiekt_sfera_test
 {
     public static class Utils
     {
-        public static void DodajKontrahenta(InsERT.Subiekt sgt, string nazwa, string nazwaPelna, string symbol,
-            string miejscowosc, string ulica, string nrLokalu, string imie = null, string nazwisko = null,
-            string panstwo = null, string kodPocztowy = null)
+        public static string ServerGt = "KRYSTIAN\\INSERTGT";
+        public static string BazaGt = "test3";
+        public static string OperatorGt = "Szef";
+        public static string OperatorGThaslo = "";
+
+        public static string PortalGamesServer = "8706.m.tld.pl";
+        public static string PortalGamesBaza = "baza8706_11";
+        public static string PortalGamesUser = "admin8706_11";
+        public static string PortalGamesPassword = "0NgFs9%Mg6";
+
+        public static Dictionary<int, string> panstwa = new Dictionary<int, string>
         {
-            try
+            { 1, "PL" },
+            { 2, "CZ" }
+
+        };
+
+        public static void DodajKontrahenta(InsERT.Subiekt sgt, string nazwa, string symbol, string miejscowosc, string ulica, int panstwo, string kodPocztowy, string imie = null, string nazwisko = null)
+        {
+            bool czyIstnieje = true;
+
+            czyIstnieje = sgt.Kontrahenci.Istnieje(symbol);
+
+            if (!czyIstnieje)
             {
                 InsERT.Kontrahent okh = sgt.Kontrahenci.Dodaj();
                 okh.Typ = InsERT.KontrahentTypEnum.gtaKontrahentTypDostOdb;
-                okh.Nazwa = nazwa;
-                okh.NazwaPelna = nazwaPelna;
+                okh.Osoba = true;
+
+                Console.WriteLine("kodPocztowy kontrahenta: " + kodPocztowy);
+                if (nazwa.Length > 50)
+                {
+                    okh.Nazwa = nazwa.Substring(0, 50);
+                    okh.NazwaPelna = nazwa;
+                }
+                else
+                {
+                    okh.Nazwa = nazwa;
+                }
+
+                if (ulica.Length > 50)
+                {
+                    okh.Ulica = ulica.Substring(0, 50);
+                }
+                else
+                {
+                    okh.Ulica = ulica;
+                }
+
+                if (kodPocztowy.Length > 8)
+                {
+                    okh.KodPocztowy = kodPocztowy.Substring(0, 8);
+                }
+                else
+                {
+                    okh.KodPocztowy = kodPocztowy;
+                }
+
                 okh.Symbol = symbol;
                 okh.Miejscowosc = miejscowosc;
-                okh.Ulica = ulica;
-                okh.NrLokalu = nrLokalu;
                 okh.OsobaImie = imie;
                 okh.OsobaNazwisko = nazwisko;
                 okh.Panstwo = panstwo;
-                okh.KodPocztowy = kodPocztowy;
-                //okh.Email = email;
 
-
+                //Console.WriteLine("Dodano kontrahenta: " + okh.Nazwa);
                 okh.Zapisz();
                 okh.Zamknij();
             }
-            catch (Exception e)
+            else
             {
-                Console.WriteLine(e);
-                throw;
+                //InsERT.Kontrahent okh = sgt.Kontrahenci.Wczytaj(symbol);
+                //okh.Osoba = true;
+
+                //okh.Zapisz();
+                //okh.Zamknij();
+                //Console.WriteLine("Kontrahent o symbolu: " + symbol + " juz istnieje");
             }
         }
 
@@ -42,10 +92,10 @@ namespace subiekt_sfera_test
         {
             var portalGamesConnString = new MySqlConnectionStringBuilder
             {
-                Server = ConfigConnection.PortalGamesServer,
-                UserID = ConfigConnection.PortalGamesUser,
-                Password = ConfigConnection.PortalGamesPassword,
-                Database = ConfigConnection.PortalGamesBaza
+                Server = PortalGamesServer,
+                UserID = PortalGamesUser,
+                Password = PortalGamesPassword,
+                Database = PortalGamesBaza
             };
 
             using (MySqlConnection conn = new MySqlConnection(portalGamesConnString.ToString()))
@@ -64,20 +114,25 @@ namespace subiekt_sfera_test
 
                     while (reader.Read())
                     {
-                        string id = reader["user_id"].ToString();
-                        string address_street = reader["address_street"].ToString();
-                        string address_city = reader["address_city"].ToString();
-                        string address_zip = reader["address_zip"].ToString();
-                        string country = reader["country"].ToString();
-                        string firstname = reader["daddress_name"].ToString();
-                        string lastname = reader["daddress_lastname"].ToString();
-                        string phone = reader["phone"].ToString();
-                        string company_name = reader["company_name"].ToString();
-                        string loyality_points = reader["loyality_points"].ToString();
-                        string discount = reader["discount"].ToString();
-                        string email = reader["email"].ToString();
-                        //DodajKontrahenta(sgt);
-                        //
+                        string id = reader["customer_id"].ToString();
+                        string ulica = reader["address_street"].ToString() == string.Empty ? "brak" : reader["address_street"].ToString();
+                        string miasto = reader["address_city"].ToString() == string.Empty ? "brak" : reader["address_city"].ToString();
+                        string zip = reader["address_zip"].ToString() == string.Empty ? "brak" : reader["address_zip"].ToString();
+                        string panstwo_kod = reader["address_state_id"].ToString() == string.Empty ? "brak" : reader["address_state_id"].ToString();
+                        string nazwa = reader["customer_name"].ToString() == string.Empty ? "brak" : reader["customer_name"].ToString();
+                        string imie = reader["maddress_name"].ToString() == string.Empty ? "brak" : reader["maddress_name"].ToString();
+                        string nazwisko = reader["maddress_lastname"].ToString() == string.Empty ? "brak" : reader["maddress_lastname"].ToString();
+                        string fima = reader["company_name"].ToString() == string.Empty ? "brak" : reader["company_name"].ToString();
+                        string miasto_kod = reader["address_zip"].ToString() == string.Empty ? "brak" : reader["address_zip"].ToString();
+
+                        int panstwo_id = 1;
+                        if (!string.IsNullOrEmpty(panstwo_kod))
+                        {
+                            panstwo_id = panstwa.Where(p => p.Value.Equals(panstwo_kod)).Select(p => p.Key).FirstOrDefault();
+
+                        }
+
+                        DodajKontrahenta(sgt, nazwa, id, miasto, ulica, panstwo_id, miasto_kod, imie, nazwisko);
                     }
                 }
             }

@@ -1,6 +1,6 @@
 ﻿using MySql.Data.MySqlClient;
 using System;
-using System.Security.Cryptography.X509Certificates;
+
 using InsERT;
 
 namespace subiekt_sfera_test

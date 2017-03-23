@@ -1,23 +1,22 @@
 ﻿using MySql.Data.MySqlClient;
 using System;
+using InsERT;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace subiekt_sfera_test
 {
     public static class Utils
     {
-        public static string serverGT = "(local)\\INSERTGT";
-        public static string bazaGT = "test3";
-        public static string operatorGT = "Szef";
-        public static string operatorGThaslo = "";
+        public static string ServerGt = "KRYSTIAN\\INSERTGT";
+        public static string BazaGt = "test3";
+        public static string OperatorGt = "Szef";
+        public static string OperatorGThaslo = "";
 
-        public static string portalGamesServer = "8706.m.tld.pl";
-        public static string portalGamesBaza = "baza8706_11";
-        public static string portalGamesUser = "admin8706_11";
-        public static string portalGamesPassword = "0NgFs9%Mg6";
+        public static string PortalGamesServer = "8706.m.tld.pl";
+        public static string PortalGamesBaza = "baza8706_11";
+        public static string PortalGamesUser = "admin8706_11";
+        public static string PortalGamesPassword = "0NgFs9%Mg6";
 
         public static Dictionary<int, string> panstwa = new Dictionary<int, string>
         {
@@ -90,11 +89,13 @@ namespace subiekt_sfera_test
 
         public static void GetUsersFromPortalGames(InsERT.Subiekt sgt) 
         {
-            MySqlConnectionStringBuilder portalGamesConnString = new MySqlConnectionStringBuilder();
-            portalGamesConnString.Server = portalGamesServer;
-            portalGamesConnString.UserID = portalGamesUser;
-            portalGamesConnString.Password = portalGamesPassword;
-            portalGamesConnString.Database = portalGamesBaza;
+            var portalGamesConnString = new MySqlConnectionStringBuilder
+            {
+                Server = PortalGamesServer,
+                UserID = PortalGamesUser,
+                Password = PortalGamesPassword,
+                Database = PortalGamesBaza
+            };
 
             using (MySqlConnection conn = new MySqlConnection(portalGamesConnString.ToString()))
             {
@@ -135,6 +136,27 @@ namespace subiekt_sfera_test
                     Console.WriteLine("Wszyscy kontrahenci zostali dodani");
                 }
             }
+        }
+
+        public static void WstawDokumentPrzyjeciaPlatnosci(InsERT.Subiekt sgt, long id, int idKontrahenta, string tytul, decimal cena, string kurs)
+        {
+            var finDokument = sgt.FinManager.DodajDokumentKasowy(DokFinTypEnum.gtaDokFinTypKP, (int) id);
+            finDokument.Data = DateTime.Now;
+            finDokument.ObiektPowiazanyWstaw(DokFinObiektTypEnum.gtaDokFinObiektKontrahent, idKontrahenta);
+            finDokument.WartoscPoczatkowaWaluta = cena;
+            finDokument.Waluta = kurs;
+            finDokument.Tytulem = tytul;
+            finDokument.Zapisz();
+        }
+        public static void WstawDokumentWystawieniaPlatnosci(InsERT.Subiekt sgt, long id, int idKontrahenta, string tytul, decimal cena, string kurs)
+        {
+            var finDokument = sgt.FinManager.DodajDokumentKasowy(DokFinTypEnum.gtaDokFinTypKW, (int)id);
+            finDokument.Data = DateTime.Now;
+            finDokument.ObiektPowiazanyWstaw(DokFinObiektTypEnum.gtaDokFinObiektKontrahent, idKontrahenta);
+            finDokument.WartoscPoczatkowaWaluta = cena;
+            finDokument.Waluta = kurs;
+            finDokument.Tytulem = tytul;
+            finDokument.Zapisz();
         }
     }
 }

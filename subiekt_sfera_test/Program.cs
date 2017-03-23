@@ -15,6 +15,7 @@ namespace subiekt_sfera_test
             InsERT.GT gt = new InsERT.GT();
             InsERT.Subiekt sgt;
             gt.Produkt = InsERT.ProduktEnum.gtaProduktSubiekt;
+
             gt.Serwer = Utils.serverGT;//"(local)\\INSERTGT";
             gt.Baza = Utils.bazaGT;//"test3";
             gt.Autentykacja = InsERT.AutentykacjaEnum.gtaAutentykacjaWindows;//gtaAutentykacjaMieszana;
@@ -24,7 +25,7 @@ namespace subiekt_sfera_test
             
             sgt = (InsERT.Subiekt) gt.Uruchom((int) InsERT.UruchomDopasujEnum.gtaUruchomDopasuj, (int) InsERT.UruchomEnum.gtaUruchom);
 
-            //sgt.KontrahenciManager.DodajKontrahenta();
+//            sgt.KontrahenciManager.DodajKontrahenta();
 
             Utils.DodajKontrahenta(sgt, "lukasz", "9291", "Poczesna", "Szkolna", 1, "42-262", "ukasz", "miedla");
             //Utils.DodajKontrahenta(sgt, "Ukaszz", "testowy ze sfery", "9123sd", "Poczesna", "Szkolna", "39");

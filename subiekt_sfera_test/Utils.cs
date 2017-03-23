@@ -88,7 +88,7 @@ namespace subiekt_sfera_test
             }
         }
 
-        public static void GetUsersFromPortalGames(InsERT.Subiekt sgt)
+        public static void GetUsersFromPortalGames(InsERT.Subiekt sgt) 
         {
             MySqlConnectionStringBuilder portalGamesConnString = new MySqlConnectionStringBuilder();
             portalGamesConnString.Server = portalGamesServer;

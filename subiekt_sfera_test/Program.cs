@@ -20,7 +20,7 @@ namespace subiekt_sfera_test
             gt.Autentykacja = InsERT.AutentykacjaEnum.gtaAutentykacjaWindows;//gtaAutentykacjaMieszana;
             gt.Operator = Utils.operatorGT;//"Szef";
             gt.OperatorHaslo = Utils.operatorGThaslo;//"";
-            Debug.WriteLine("gt.Polaczenie: " + gt.Polaczenie.ConnectionString);
+            Debug.WriteLine("gt.Polaczenie: " + gt.Polaczenie.ConnectionString); 
             
             sgt = (InsERT.Subiekt) gt.Uruchom((int) InsERT.UruchomDopasujEnum.gtaUruchomDopasuj, (int) InsERT.UruchomEnum.gtaUruchom);
 

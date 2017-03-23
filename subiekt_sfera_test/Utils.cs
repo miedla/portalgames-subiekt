@@ -103,5 +103,15 @@ namespace subiekt_sfera_test
             finDokument.Tytulem = tytul;
             finDokument.Zapisz();
         }
+        public static void WstawDokumentWystawieniaPlatnosci(InsERT.Subiekt sgt, long id, int idKontrahenta, string tytul, decimal cena, string kurs)
+        {
+            var finDokument = sgt.FinManager.DodajDokumentKasowy(DokFinTypEnum.gtaDokFinTypKW, (int)id);
+            finDokument.Data = DateTime.Now;
+            finDokument.ObiektPowiazanyWstaw(DokFinObiektTypEnum.gtaDokFinObiektKontrahent, idKontrahenta);
+            finDokument.WartoscPoczatkowaWaluta = cena;
+            finDokument.Waluta = kurs;
+            finDokument.Tytulem = tytul;
+            finDokument.Zapisz();
+        }
     }
 }

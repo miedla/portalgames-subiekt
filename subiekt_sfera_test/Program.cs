@@ -17,31 +17,22 @@ namespace subiekt_sfera_test
             gt.Produkt = InsERT.ProduktEnum.gtaProduktSubiekt;
 
             gt.Serwer = Utils.ServerGt;//"(local)\\INSERTGT";
-            gt.Baza = Utils.BazaGt;//"Portalgames";
+            gt.Baza = Utils.BazaGt;//"test3";
             gt.Autentykacja = InsERT.AutentykacjaEnum.gtaAutentykacjaWindows;//gtaAutentykacjaMieszana;
             gt.Operator = Utils.OperatorGt;//"Szef";
             gt.OperatorHaslo = Utils.OperatorGThaslo;//"";
-            Debug.WriteLine("gt.Polaczenie: " + gt.Polaczenie.ConnectionString); 
-            
-            sgt = (InsERT.Subiekt) gt.Uruchom((int) InsERT.UruchomDopasujEnum.gtaUruchomDopasuj, (int) InsERT.UruchomEnum.gtaUruchom);
+            Debug.WriteLine("gt.Polaczenie: " + gt.Polaczenie.ConnectionString);
 
-//            sgt.KontrahenciManager.DodajKontrahenta();
+            sgt = (InsERT.Subiekt)gt.Uruchom((int)InsERT.UruchomDopasujEnum.gtaUruchomDopasuj, (int)InsERT.UruchomEnum.gtaUruchom);
 
+            //            sgt.KontrahenciManager.DodajKontrahenta();
 
-
-//            Utils.DodajKontrahenta(sgt, "Ukaszz", "testowy ze sfery", "9123sd", "Poczesna", "Szkolna", "39");
-            Utils.WstawDokumentPrzyjeciaPlatnosci(sgt,1,4, "test", 7,"PLN");
-            
-
-            Utils.WstawDokumentWystawieniaPlatnosci(sgt,1,4, "test", 7,"PLN");
-
-            //Utils.DodajKontrahenta(sgt, "lukasz", "9291", "Poczesna", "Szkolna", 1, "42-262", "ukasz", "miedla");
+            Utils.DodajKontrahenta(sgt, "lukasz", "9291", "Poczesna", "Szkolna", 1, "42-262", "ukasz", "miedla");
             //Utils.DodajKontrahenta(sgt, "Ukaszz", "testowy ze sfery", "9123sd", "Poczesna", "Szkolna", "39");
-
+            Utils.GetUsersFromPortalGames(sgt);
             //sgt.Okno.Widoczne = true;
 
             Console.ReadKey();
-            //moj komentarz
         }
     }
 }

@@ -33,6 +33,7 @@ namespace subiekt_sfera_test
             //sgt.Okno.Widoczne = true;
 
             Console.ReadKey();
+            //moj komnetarz
         }
     }
 }

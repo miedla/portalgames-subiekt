@@ -1,52 +1,59 @@
 ﻿using MySql.Data.MySqlClient;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace subiekt_sfera_test
 {
     public static class Utils
     {
-        public static string serverGT = "(local)\\INSERTGT";
-        public static string bazaGT = "test3";
-        public static string operatorGT = "Szef";
-        public static string operatorGThaslo = "";
+        public static string ServerGt = "KRYSTIAN\\INSERTGT";
+        public static string BazaGt = "test3";
+        public static string OperatorGt = "Szef";
+        public static string OperatorGThaslo = "";
 
-        public static string portalGamesServer = "8706.m.tld.pl";
-        public static string portalGamesBaza = "baza8706_11";
-        public static string portalGamesUser = "admin8706_11";
-        public static string portalGamesPassword = "0NgFs9%Mg6";
+        public static string PortalGamesServer = "8706.m.tld.pl";
+        public static string PortalGamesBaza = "baza8706_11";
+        public static string PortalGamesUser = "admin8706_11";
+        public static string PortalGamesPassword = "0NgFs9%Mg6";
 
-        public static async void DodajKontrahenta(InsERT.Subiekt sgt, string nazwa, string nazwaPelna, string symbol, string miejscowosc, string ulica, string nrLokalu, string imie=null, string nazwisko=null, string panstwo=null, string kodPocztowy=null)
+        public static void DodajKontrahenta(InsERT.Subiekt sgt, string nazwa, string nazwaPelna, string symbol, string miejscowosc, string ulica, string nrLokalu, string imie=null, string nazwisko=null, string panstwo=null, string kodPocztowy=null)
         {
-            InsERT.Kontrahent okh = await sgt.Kontrahenci.Dodaj();
-            okh.Typ = InsERT.KontrahentTypEnum.gtaKontrahentTypDostOdb;
-            okh.Nazwa = nazwa;
-            okh.NazwaPelna = nazwaPelna;
-            okh.Symbol = symbol;
-            okh.Miejscowosc = miejscowosc;
-            okh.Ulica = ulica;
-            okh.NrLokalu = nrLokalu;
-            okh.OsobaImie = imie;
-            okh.OsobaNazwisko = nazwisko;
-            okh.Panstwo = panstwo;
-            okh.KodPocztowy = kodPocztowy;
-            //okh.Email = email;
-            
+            try
+            {
+                InsERT.Kontrahent okh = sgt.Kontrahenci.Dodaj();
+                okh.Typ = InsERT.KontrahentTypEnum.gtaKontrahentTypDostOdb;
+                okh.Nazwa = nazwa;
+                okh.NazwaPelna = nazwaPelna;
+                okh.Symbol = symbol;
+                okh.Miejscowosc = miejscowosc;
+                okh.Ulica = ulica;
+                okh.NrLokalu = nrLokalu;
+                okh.OsobaImie = imie;
+                okh.OsobaNazwisko = nazwisko;
+                okh.Panstwo = panstwo;
+                okh.KodPocztowy = kodPocztowy;
+                //okh.Email = email;
 
-            okh.Zapisz();
-            okh.Zamknij();
+
+                okh.Zapisz();
+                okh.Zamknij();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+
         }
 
         public static void GetUsersFromPortalGames(InsERT.Subiekt sgt)
         {
-            MySqlConnectionStringBuilder portalGamesConnString = new MySqlConnectionStringBuilder();
-            portalGamesConnString.Server = portalGamesServer;
-            portalGamesConnString.UserID = portalGamesUser;
-            portalGamesConnString.Password = portalGamesPassword;
-            portalGamesConnString.Database = portalGamesBaza;
+            var portalGamesConnString = new MySqlConnectionStringBuilder
+            {
+                Server = PortalGamesServer,
+                UserID = PortalGamesUser,
+                Password = PortalGamesPassword,
+                Database = PortalGamesBaza
+            };
 
             using (MySqlConnection conn = new MySqlConnection(portalGamesConnString.ToString()))
             {

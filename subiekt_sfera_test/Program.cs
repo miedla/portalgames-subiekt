@@ -34,13 +34,16 @@ namespace subiekt_sfera_test
 
             sgt = (InsERT.Subiekt)gt.Uruchom((int)InsERT.UruchomDopasujEnum.gtaUruchomDopasuj, (int)InsERT.UruchomEnum.gtaUruchom);
 
-            //            sgt.KontrahenciManager.DodajKontrahenta();
-            Utils.WstawDokumentPrzyjeciaPlatnosci(sgt,1,4,"tytul",15,"PLN");
-            Utils.WstawDokumentWystawieniaPlatnosci(sgt,1,4,"tytul",15,"PLN");
+//            sgt.KontrahenciManager.DodajKontrahenta();
+//            Utils.WstawDokumentPrzyjeciaPlatnosci(sgt,1,4,"tytul",15,"PLN");
+//            Utils.WstawDokumentWystawieniaPlatnosci(sgt,1,4,"tytul",15,"PLN");
 //            Utils.DodajKontrahenta(sgt, "lukasz", "9291", "Poczesna", "Szkolna", 1, "42-262", "ukasz", "miedla");
-            //Utils.DodajKontrahenta(sgt, "Ukaszz", "testowy ze sfery", "9123sd", "Poczesna", "Szkolna", "39");
+//            Utils.DodajKontrahenta(sgt, "Ukaszz", "testowy ze sfery", "9123sd", "Poczesna", "Szkolna", "39");
 //            Utils.GetUsersFromPortalGames(sgt);
-            //sgt.Okno.Widoczne = true;
+//            sgt.Okno.Widoczne = true;
+            var przykladowaListaProduktow = new List<int> {23, 4};
+            Utils.DodajParagonImienny(sgt,4,przykladowaListaProduktow);
+            Utils.DodajParagon(sgt,przykladowaListaProduktow);
             Console.WriteLine("KONIEC");
             Console.ReadKey();
             //moj komnetarz

@@ -258,5 +258,85 @@ namespace subiekt_sfera_test
             
             fsDokument.Zapisz();
         }
+        /// <summary>
+        /// Metoda dodaje zamówienie 
+        /// </summary>
+        /// <param name="sgt">Obiekt klasy InsERT.Subiekt</param>
+        /// <param name="idKontrahenta">Id kontrahenta</param>
+        /// <param name="idProducts">Lista id produktów wystawiona do sprzedaży</param>
+        public static void DodajZamowienie(InsERT.Subiekt sgt, int idKontrahenta, List<int> idProducts)
+        {
+            var zkDokument = sgt.Dokumenty.Dodaj(SubiektDokumentEnum.gtaSubiektDokumentZK);
+
+            zkDokument.KontrahentId = idKontrahenta;
+            foreach (var idProduct in idProducts)
+            {
+                zkDokument.Pozycje.Dodaj(idProduct);
+            }
+
+            zkDokument.Zapisz();
+        }
+        /// <summary>
+        /// Metoda tworzy fakture zaliczkową
+        /// </summary>
+        /// <param name="sgt">Obiekt klasy InsERT.Subiekt</param>
+        /// <param name="nazwaDokumentu">Nazwa (Numer) dokumunetu zamowienia</param>
+        /// <param name="typPrzedpalty">Jaki ma być zastosowany typ przedpłaty.
+        /// Do wyboru są 3 typy: gotowka, przelew, karta</param>
+        public static void WystawFaktureZaliczkowa(InsERT.Subiekt sgt, string nazwaDokumentu, string typPrzedpalty)
+        {
+            var fsDokument = sgt.Dokumenty.Dodaj(SubiektDokumentEnum.gtaSubiektDokumentFSzal);
+            try
+            {
+                var oDok = sgt.SuDokumentyManager.Wczytaj(nazwaDokumentu);
+
+                fsDokument.NaPodstawie(oDok.Identyfikator);
+                switch (typPrzedpalty)
+                {
+                    case "gotowka":
+                        break;
+
+                    case "przelew":
+                        fsDokument.PlatnoscGotowkaKwota = 0;
+                        fsDokument.PlatnoscPrzelewKwota = oDok.KwotaDoZaplaty();
+                        break;
+                    case "karta":
+                        fsDokument.PlatnoscGotowkaKwota = 0;
+                        fsDokument.PlatnoscKredytKwota = oDok.KwotaDoZaplaty();
+                        break;
+                }
+
+                fsDokument.Przelicz();
+                fsDokument.Zapisz();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                                throw;
+            }
+        }
+        /// <summary>
+        /// Metoda tworzy fakture zakliczkową końcową
+        /// </summary>
+        /// <param name="sgt">Obiekt klasy InsERT.Subiekt</param>
+        /// <param name="nazwaDokumentu">Nazwa (Numer) dokumunetu zamowienia</param>
+        public static void WystawFaktureZaliczkowaKoncowa(InsERT.Subiekt sgt, string nazwaDokumentu)
+        {
+            var fsDokument = sgt.Dokumenty.Dodaj(SubiektDokumentEnum.gtaSubiektDokumentFSzalkonc);
+            try
+            {
+                var oDok = sgt.SuDokumentyManager.Wczytaj(nazwaDokumentu);
+
+                fsDokument.NaPodstawie(oDok.Identyfikator);
+
+                fsDokument.Przelicz();
+                fsDokument.Zapisz();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+        }
     }
 }

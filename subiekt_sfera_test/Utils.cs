@@ -186,6 +186,7 @@ namespace subiekt_sfera_test
             finDokument.Tytulem = tytul;
             finDokument.Zapisz();
         }
+
         /// <summary>
         /// Metoda wystawia paragon detaliczny.
         /// </summary>
@@ -200,6 +201,7 @@ namespace subiekt_sfera_test
             }
             paDokument.Zapisz();
         }
+
         /// <summary>
         /// Metoda wystawia paragon imenny 
         /// </summary>
@@ -215,6 +217,46 @@ namespace subiekt_sfera_test
                 paDokument.Pozycje.Dodaj(idProduct);
             }
             paDokument.Zapisz();
+        }
+        /// <summary>
+        /// Metoda wystawia fakture detaliczną do paragonu imennego.
+        /// </summary>
+        /// <param name="sgt">Obiekt klasy InsERT.Subiekt</param>
+        /// <param name="nazwaDokumentu">Nazwa (Numer) paragonu imiennego</param>
+        public static void WystawFaktureDetaliczna(InsERT.Subiekt sgt, string nazwaDokumentu)
+        {
+            var fsDokument = sgt.Dokumenty.Dodaj(SubiektDokumentEnum.gtaSubiektDokumentFSd);
+            try
+            {
+                var oDok = sgt.SuDokumentyManager.Wczytaj(nazwaDokumentu);
+
+                fsDokument.NaPodstawie(oDok.Identyfikator);
+                fsDokument.Przelicz();
+                fsDokument.Zapisz();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+//                throw;
+            }
+        }
+        /// <summary>
+        /// Metoda wystawia fakture sprzedaży
+        /// </summary>
+        /// <param name="sgt">Obiekt klasy InsERT.Subiekt</param>
+        /// <param name="idKontrahenta">Id kontrahenta</param>
+        /// <param name="idProducts">Lista id produktów wystawiona do sprzedaży</param>
+        public static void DodajFaktureSprzedazy(InsERT.Subiekt sgt, int idKontrahenta, List<int> idProducts)
+        {
+            var fsDokument = sgt.Dokumenty.Dodaj(SubiektDokumentEnum.gtaSubiektDokumentFS);
+
+            fsDokument.KontrahentId = idKontrahenta;
+            foreach (var idProduct in idProducts)
+            {
+                fsDokument.Pozycje.Dodaj(idProduct);
+            }
+            
+            fsDokument.Zapisz();
         }
     }
 }

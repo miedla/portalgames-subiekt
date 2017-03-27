@@ -333,7 +333,7 @@ namespace subiekt_sfera_test
                 fsDokument.Zapisz();
             }
             catch (Exception e)
-            {
+            { 
                 Console.WriteLine(e);
                 throw;
             }

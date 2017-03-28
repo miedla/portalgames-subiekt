@@ -30,18 +30,18 @@ namespace subiekt_sfera_test
             }
             gt.Operator = ConfigConnection.OperatorGt; //"Szef";
             gt.OperatorHaslo = ConfigConnection.OperatorGThaslo; //"";
-            Debug.WriteLine("gt.Polaczenie: " + gt.Polaczenie.ConnectionString);
+            //Debug.WriteLine("gt.Polaczenie: " + gt.Polaczenie.ConnectionString);
 
-            sgt =
+            sgt = 
                 (InsERT.Subiekt)
-                gt.Uruchom((int) InsERT.UruchomDopasujEnum.gtaUruchomDopasuj, (int) InsERT.UruchomEnum.gtaUruchom);
+                gt.Uruchom((int) InsERT.UruchomDopasujEnum.gtaUruchomDopasujUzytkownika, (int) InsERT.UruchomEnum.gtaUruchom);
 
-            //            sgt.KontrahenciManager.DodajKontrahenta();
+            //sgt.KontrahenciManager.DodajKontrahenta();
             //            Utils.WstawDokumentPrzyjeciaPlatnosci(sgt,1,4,"tytul",15,"PLN");
             //                        Utils.WstawDokumentWystawieniaPlatnosci(sgt,1,4,"tytul", 15.55m, "PLN");
             //            Utils.DodajKontrahenta(sgt, "lukasz", "9291", "Poczesna", "Szkolna", 1, "42-262", "ukasz", "miedla");
             //            Utils.DodajKontrahenta(sgt, "Ukaszz", "testowy ze sfery", "9123sd", "Poczesna", "Szkolna", "39");
-            //            Utils.GetUsersFromPortalGames(sgt);
+            Utils.GetUsersFromPortalGames(sgt);
             //            sgt.Okno.Widoczne = true;
             //            var przykladowaListaProduktow = new List<int> {23, 4};
             //            Utils.DodajParagonImienny(sgt,4,przykladowaListaProduktow);
@@ -51,10 +51,7 @@ namespace subiekt_sfera_test
             //            var przykladowaListaProduktow = new List<int> { 23, 4 }; Utils.DodajZamowienie(sgt,4, przykladowaListaProduktow);
             //            Utils.WystawFaktureZaliczkowa(sgt, "ZK 7/SF/MAG/2017", "przelew");
             //            Utils.WystawFaktureZaliczkowaKoncowa(sgt, "ZK 7/SF/MAG/2017");
-            //            Console.WriteLine("KONIEC");Console.ReadKey(); 
-            //            Utils.KursTest(sgt,1,4,"tytul",10m,"EUR");
-//            var przykladowaListaProduktow = new List<int> { 23, 4 }; Utils.WydanieZewnetrzne(sgt, 4, przykladowaListaProduktow);
-            var przykladowaListaProduktow = new List<int> { 23, 4 }; Utils.PrzyjecieZewnetrzne(sgt, 3, przykladowaListaProduktow);
+            //Console.WriteLine("KONIEC"); Console.ReadKey();
             //moj komnetarz
         }
     }

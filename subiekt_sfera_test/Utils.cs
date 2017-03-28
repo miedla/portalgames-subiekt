@@ -27,7 +27,7 @@ namespace subiekt_sfera_test
                 okh.Typ = InsERT.KontrahentTypEnum.gtaKontrahentTypDostOdb;
                 okh.Osoba = true;
 
-                Console.WriteLine("kodPocztowy kontrahenta: " + kodPocztowy);
+                //Console.WriteLine("imie kontrahenta: " + imie);
                 if (nazwa.Length > 50)
                 {
                     okh.Nazwa = nazwa.Substring(0, 50);
@@ -56,9 +56,18 @@ namespace subiekt_sfera_test
                     okh.KodPocztowy = kodPocztowy;
                 }
 
+                if(imie.Length > 20)
+                {
+                    okh.OsobaImie = imie.Substring(0, 20);
+                }
+                else
+                {
+                    okh.NazwaPelna = imie;
+                }
+
                 okh.Symbol = symbol;
                 okh.Miejscowosc = miejscowosc;
-                okh.OsobaImie = imie;
+                //okh.OsobaImie = imie;
                 okh.OsobaNazwisko = nazwisko;
                 okh.Panstwo = panstwo;
 
@@ -91,10 +100,7 @@ namespace subiekt_sfera_test
             {
                 using (MySqlCommand cmd = conn.CreateCommand())
                 {
-                    string sqlCommand =
-                        "SELECT c.user_id, c.address_street, c.address_city, c.address_zip, s.name as country, c.daddress_name, c.daddress_lastname, c.phone, c.company_name, c.loyality_points, c.discount, u.email " +
-                        "FROM customer c " +
-                        "JOIN user u ON(c.user_id = u.id) JOIN state s ON (s.id = c.address_state_id);";
+                    string sqlCommand = "SELECT * from baza8706_11.`order` o WHERE o.paid = 1 GROUP BY o.customer_id HAVING COUNT(*) = 1";
 
                     cmd.CommandText = sqlCommand;
 

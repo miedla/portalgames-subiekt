@@ -190,6 +190,8 @@ $RECYCLE.BIN/
 
 **/node_modules/*
 
+**/subiekt_sfera_test/ConfigConnection.cs
+
 #####
 # End of core ignore list, below put you custom 'per project' settings (patterns or path)
 #####

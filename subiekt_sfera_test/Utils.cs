@@ -2,22 +2,20 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
-
 using InsERT;
 
 namespace subiekt_sfera_test
 {
     public static class Utils
     {
-
         public static Dictionary<int, string> panstwa = new Dictionary<int, string>
         {
-            { 1, "PL" },
-            { 2, "CZ" }
-
+            {1, "PL"},
+            {2, "CZ"}
         };
 
-        public static void DodajKontrahenta(InsERT.Subiekt sgt, string nazwa, string symbol, string miejscowosc, string ulica, int panstwo, string kodPocztowy, string imie = null, string nazwisko = null)
+        public static void DodajKontrahenta(InsERT.Subiekt sgt, string nazwa, string symbol, string miejscowosc,
+            string ulica, int panstwo, string kodPocztowy, string imie = null, string nazwisko = null)
         {
             bool czyIstnieje = true;
 
@@ -106,21 +104,39 @@ namespace subiekt_sfera_test
                     while (reader.Read())
                     {
                         string id = reader["customer_id"].ToString();
-                        string ulica = reader["address_street"].ToString() == string.Empty ? "brak" : reader["address_street"].ToString();
-                        string miasto = reader["address_city"].ToString() == string.Empty ? "brak" : reader["address_city"].ToString();
-                        string zip = reader["address_zip"].ToString() == string.Empty ? "brak" : reader["address_zip"].ToString();
-                        string panstwo_kod = reader["address_state_id"].ToString() == string.Empty ? "brak" : reader["address_state_id"].ToString();
-                        string nazwa = reader["customer_name"].ToString() == string.Empty ? "brak" : reader["customer_name"].ToString();
-                        string imie = reader["maddress_name"].ToString() == string.Empty ? "brak" : reader["maddress_name"].ToString();
-                        string nazwisko = reader["maddress_lastname"].ToString() == string.Empty ? "brak" : reader["maddress_lastname"].ToString();
-                        string fima = reader["company_name"].ToString() == string.Empty ? "brak" : reader["company_name"].ToString();
-                        string miasto_kod = reader["address_zip"].ToString() == string.Empty ? "brak" : reader["address_zip"].ToString();
+                        string ulica = reader["address_street"].ToString() == string.Empty
+                            ? "brak"
+                            : reader["address_street"].ToString();
+                        string miasto = reader["address_city"].ToString() == string.Empty
+                            ? "brak"
+                            : reader["address_city"].ToString();
+                        string zip = reader["address_zip"].ToString() == string.Empty
+                            ? "brak"
+                            : reader["address_zip"].ToString();
+                        string panstwo_kod = reader["address_state_id"].ToString() == string.Empty
+                            ? "brak"
+                            : reader["address_state_id"].ToString();
+                        string nazwa = reader["customer_name"].ToString() == string.Empty
+                            ? "brak"
+                            : reader["customer_name"].ToString();
+                        string imie = reader["maddress_name"].ToString() == string.Empty
+                            ? "brak"
+                            : reader["maddress_name"].ToString();
+                        string nazwisko = reader["maddress_lastname"].ToString() == string.Empty
+                            ? "brak"
+                            : reader["maddress_lastname"].ToString();
+                        string fima = reader["company_name"].ToString() == string.Empty
+                            ? "brak"
+                            : reader["company_name"].ToString();
+                        string miasto_kod = reader["address_zip"].ToString() == string.Empty
+                            ? "brak"
+                            : reader["address_zip"].ToString();
 
                         int panstwo_id = 1;
                         if (!string.IsNullOrEmpty(panstwo_kod))
                         {
-                            panstwo_id = panstwa.Where(p => p.Value.Equals(panstwo_kod)).Select(p => p.Key).FirstOrDefault();
-
+                            panstwo_id =
+                                panstwa.Where(p => p.Value.Equals(panstwo_kod)).Select(p => p.Key).FirstOrDefault();
                         }
 
                         DodajKontrahenta(sgt, nazwa, id, miasto, ulica, panstwo_id, miasto_kod, imie, nazwisko);
@@ -128,6 +144,7 @@ namespace subiekt_sfera_test
                 }
             }
         }
+
         /// <summary>
         /// Funkcja wystawia dokument przyjęcia płatności w Subiekcie - KP
         /// </summary>
@@ -137,9 +154,10 @@ namespace subiekt_sfera_test
         /// <param name="tytul">Tytul jaki bedzie widniał na dokumencie</param>
         /// <param name="cena">Cena jaka została wystawiona na dokumencie</param>
         /// <param name="kurs">Nazwa kursu waluty jaki ma przyjąć dokumen (np. PLN, USD, EUR)</param>
-        public static void WstawDokumentPrzyjeciaPlatnosci(InsERT.Subiekt sgt, long idKasy, int idKontrahenta, string tytul, decimal cena, string kurs)
+        public static void WstawDokumentPrzyjeciaPlatnosci(InsERT.Subiekt sgt, long idKasy, int idKontrahenta,
+            string tytul, decimal cena, string kurs)
         {
-            var finDokument = sgt.FinManager.DodajDokumentKasowy(DokFinTypEnum.gtaDokFinTypKP, (int)idKasy);
+            var finDokument = sgt.FinManager.DodajDokumentKasowy(DokFinTypEnum.gtaDokFinTypKP, (int) idKasy);
             finDokument.Data = DateTime.Now;
             finDokument.ObiektPowiazanyWstaw(DokFinObiektTypEnum.gtaDokFinObiektKontrahent, idKontrahenta);
             finDokument.WartoscPoczatkowaWaluta = cena;
@@ -147,6 +165,7 @@ namespace subiekt_sfera_test
             finDokument.Tytulem = tytul;
             finDokument.Zapisz();
         }
+
         /// <summary>
         /// Funkcja wystawia dokument wystawienia płatności w Subiekcie - KW
         /// </summary>
@@ -156,15 +175,168 @@ namespace subiekt_sfera_test
         /// <param name="tytul">Tytul jaki bedzie widniał na dokumencie</param>
         /// <param name="cena">Cena jaka została wystawiona na dokumencie</param>
         /// <param name="kurs">Nazwa kursu waluty jaki ma przyjąć dokumen (np. PLN, USD, EUR)</param>
-        public static void WstawDokumentWystawieniaPlatnosci(InsERT.Subiekt sgt, long idKasy, int idKontrahenta, string tytul, decimal cena, string kurs)
+        public static void WstawDokumentWystawieniaPlatnosci(InsERT.Subiekt sgt, long idKasy, int idKontrahenta,
+            string tytul, decimal cena, string kurs)
         {
-            var finDokument = sgt.FinManager.DodajDokumentKasowy(DokFinTypEnum.gtaDokFinTypKW, (int)idKasy);
+            var finDokument = sgt.FinManager.DodajDokumentKasowy(DokFinTypEnum.gtaDokFinTypKW, (int) idKasy);
             finDokument.Data = DateTime.Now;
             finDokument.ObiektPowiazanyWstaw(DokFinObiektTypEnum.gtaDokFinObiektKontrahent, idKontrahenta);
             finDokument.WartoscPoczatkowaWaluta = cena;
             finDokument.Waluta = kurs;
             finDokument.Tytulem = tytul;
             finDokument.Zapisz();
+        }
+
+        /// <summary>
+        /// Metoda wystawia paragon detaliczny.
+        /// </summary>
+        /// <param name="sgt">Obiekt klasy InsERT.Subiekt</param>
+        /// <param name="idProducts">Lista id produktów wystawiona do sprzedaży</param>
+        public static void DodajParagon(InsERT.Subiekt sgt, List<int> idProducts)
+        {
+            var paDokument = sgt.Dokumenty.Dodaj(SubiektDokumentEnum.gtaSubiektDokumentPA);
+            foreach (var idProduct in idProducts)
+            {
+                paDokument.Pozycje.Dodaj(idProduct);
+            }
+            paDokument.Zapisz();
+        }
+
+        /// <summary>
+        /// Metoda wystawia paragon imenny 
+        /// </summary>
+        /// <param name="sgt">Obiekt klasy InsERT.Subiekt</param>
+        /// <param name="idKontrahenta">Id kontrahenta</param>
+        /// <param name="idProducts">Lista id produktów wystawiona do sprzedaży</param>
+        public static void DodajParagonImienny(InsERT.Subiekt sgt, int idKontrahenta, List<int> idProducts)
+        {
+            var paDokument = sgt.Dokumenty.Dodaj(SubiektDokumentEnum.gtaSubiektDokumentPAi);
+            paDokument.KontrahentId = idKontrahenta;
+            foreach (var idProduct in idProducts)
+            {
+                paDokument.Pozycje.Dodaj(idProduct);
+            }
+            paDokument.Zapisz();
+        }
+        /// <summary>
+        /// Metoda wystawia fakture detaliczną do paragonu imennego.
+        /// </summary>
+        /// <param name="sgt">Obiekt klasy InsERT.Subiekt</param>
+        /// <param name="nazwaDokumentu">Nazwa (Numer) paragonu imiennego</param>
+        public static void WystawFaktureDetaliczna(InsERT.Subiekt sgt, string nazwaDokumentu)
+        {
+            var fsDokument = sgt.Dokumenty.Dodaj(SubiektDokumentEnum.gtaSubiektDokumentFSd);
+            try
+            {
+                var oDok = sgt.SuDokumentyManager.Wczytaj(nazwaDokumentu);
+
+                fsDokument.NaPodstawie(oDok.Identyfikator);
+                fsDokument.Przelicz();
+                fsDokument.Zapisz();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+//                throw;
+            }
+        }
+        /// <summary>
+        /// Metoda wystawia fakture sprzedaży
+        /// </summary>
+        /// <param name="sgt">Obiekt klasy InsERT.Subiekt</param>
+        /// <param name="idKontrahenta">Id kontrahenta</param>
+        /// <param name="idProducts">Lista id produktów wystawiona do sprzedaży</param>
+        public static void DodajFaktureSprzedazy(InsERT.Subiekt sgt, int idKontrahenta, List<int> idProducts)
+        {
+            var fsDokument = sgt.Dokumenty.Dodaj(SubiektDokumentEnum.gtaSubiektDokumentFS);
+
+            fsDokument.KontrahentId = idKontrahenta;
+            foreach (var idProduct in idProducts)
+            {
+                fsDokument.Pozycje.Dodaj(idProduct);
+            }
+            
+            fsDokument.Zapisz();
+        }
+        /// <summary>
+        /// Metoda dodaje zamówienie 
+        /// </summary>
+        /// <param name="sgt">Obiekt klasy InsERT.Subiekt</param>
+        /// <param name="idKontrahenta">Id kontrahenta</param>
+        /// <param name="idProducts">Lista id produktów wystawiona do sprzedaży</param>
+        public static void DodajZamowienie(InsERT.Subiekt sgt, int idKontrahenta, List<int> idProducts)
+        {
+            var zkDokument = sgt.Dokumenty.Dodaj(SubiektDokumentEnum.gtaSubiektDokumentZK);
+
+            zkDokument.KontrahentId = idKontrahenta;
+            foreach (var idProduct in idProducts)
+            {
+                zkDokument.Pozycje.Dodaj(idProduct);
+            }
+
+            zkDokument.Zapisz();
+        }
+        /// <summary>
+        /// Metoda tworzy fakture zaliczkową
+        /// </summary>
+        /// <param name="sgt">Obiekt klasy InsERT.Subiekt</param>
+        /// <param name="nazwaDokumentu">Nazwa (Numer) dokumunetu zamowienia</param>
+        /// <param name="typPrzedpalty">Jaki ma być zastosowany typ przedpłaty.
+        /// Do wyboru są 3 typy: gotowka, przelew, karta</param>
+        public static void WystawFaktureZaliczkowa(InsERT.Subiekt sgt, string nazwaDokumentu, string typPrzedpalty)
+        {
+            var fsDokument = sgt.Dokumenty.Dodaj(SubiektDokumentEnum.gtaSubiektDokumentFSzal);
+            try
+            {
+                var oDok = sgt.SuDokumentyManager.Wczytaj(nazwaDokumentu);
+
+                fsDokument.NaPodstawie(oDok.Identyfikator);
+                switch (typPrzedpalty)
+                {
+                    case "gotowka":
+                        break;
+
+                    case "przelew":
+                        fsDokument.PlatnoscGotowkaKwota = 0;
+                        fsDokument.PlatnoscPrzelewKwota = oDok.KwotaDoZaplaty();
+                        break;
+                    case "karta":
+                        fsDokument.PlatnoscGotowkaKwota = 0;
+                        fsDokument.PlatnoscKredytKwota = oDok.KwotaDoZaplaty();
+                        break;
+                }
+
+                fsDokument.Przelicz();
+                fsDokument.Zapisz();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                                throw;
+            }
+        }
+        /// <summary>
+        /// Metoda tworzy fakture zakliczkową końcową
+        /// </summary>
+        /// <param name="sgt">Obiekt klasy InsERT.Subiekt</param>
+        /// <param name="nazwaDokumentu">Nazwa (Numer) dokumunetu zamowienia</param>
+        public static void WystawFaktureZaliczkowaKoncowa(InsERT.Subiekt sgt, string nazwaDokumentu)
+        {
+            var fsDokument = sgt.Dokumenty.Dodaj(SubiektDokumentEnum.gtaSubiektDokumentFSzalkonc);
+            try
+            {
+                var oDok = sgt.SuDokumentyManager.Wczytaj(nazwaDokumentu);
+
+                fsDokument.NaPodstawie(oDok.Identyfikator);
+
+                fsDokument.Przelicz();
+                fsDokument.Zapisz();
+            }
+            catch (Exception e)
+            { 
+                Console.WriteLine(e);
+                throw;
+            }
         }
     }
 }

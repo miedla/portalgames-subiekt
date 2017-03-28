@@ -338,5 +338,22 @@ namespace subiekt_sfera_test
                 throw;
             }
         }
-    }
+        /// <summary>
+        /// Metoda wystawia dokumeny wydania towaru zewnętrznego
+        /// </summary>
+        /// <param name="sgt">Obiekt klasy InsERT.Subiekt</param>
+        /// <param name="idKontrahenta">Id kontrahenta z bazy danych</param>
+        /// <param name="idProducts">Lista id produktów</param>
+        public static void WydanieZewnetrzne(InsERT.Subiekt sgt, int idKontrahenta, List<int> idProducts )
+        {
+            var wzDokument = sgt.Dokumenty.Dodaj(SubiektDokumentEnum.gtaSubiektDokumentWZv);
+            wzDokument.KontrahentId = idKontrahenta;
+            foreach (var idProduct in idProducts)
+            {
+                wzDokument.Pozycje.Dodaj(idProduct);
+            }
+            wzDokument.Zapisz();
+
+        }
+    }   
 }

@@ -51,6 +51,7 @@ namespace subiekt_sfera_test
             //            var przykladowaListaProduktow = new List<int> { 23, 4 }; Utils.DodajZamowienie(sgt,4, przykladowaListaProduktow);
             //            Utils.WystawFaktureZaliczkowa(sgt, "ZK 7/SF/MAG/2017", "przelew");
             //            Utils.WystawFaktureZaliczkowaKoncowa(sgt, "ZK 7/SF/MAG/2017");
+//            var przykladowaListaProduktow = new List<int> { 23, 4 }; Utils.WydanieZewnetrzne(sgt,4, przykladowaListaProduktow);
             //Console.WriteLine("KONIEC"); Console.ReadKey();
             //moj komnetarz
         }

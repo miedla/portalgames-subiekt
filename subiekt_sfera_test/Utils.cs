@@ -56,7 +56,7 @@ namespace subiekt_sfera_test
                     okh.KodPocztowy = kodPocztowy;
                 }
 
-                if(imie.Length > 20)
+                if (imie.Length > 20)
                 {
                     okh.OsobaImie = imie.Substring(0, 20);
                 }
@@ -100,7 +100,8 @@ namespace subiekt_sfera_test
             {
                 using (MySqlCommand cmd = conn.CreateCommand())
                 {
-                    string sqlCommand = "SELECT * from baza8706_11.`order` o WHERE o.paid = 1 GROUP BY o.customer_id HAVING COUNT(*) = 1";
+                    string sqlCommand =
+                        "SELECT * from baza8706_11.`order` o WHERE o.paid = 1 GROUP BY o.customer_id HAVING COUNT(*) = 1";
 
                     cmd.CommandText = sqlCommand;
 
@@ -224,6 +225,7 @@ namespace subiekt_sfera_test
             }
             paDokument.Zapisz();
         }
+
         /// <summary>
         /// Metoda wystawia fakture detaliczną do paragonu imennego.
         /// </summary>
@@ -246,6 +248,7 @@ namespace subiekt_sfera_test
 //                throw;
             }
         }
+
         /// <summary>
         /// Metoda wystawia fakture sprzedaży
         /// </summary>
@@ -261,27 +264,51 @@ namespace subiekt_sfera_test
             {
                 fsDokument.Pozycje.Dodaj(idProduct);
             }
-            
+
             fsDokument.Zapisz();
         }
+
         /// <summary>
         /// Metoda dodaje zamówienie 
         /// </summary>
         /// <param name="sgt">Obiekt klasy InsERT.Subiekt</param>
         /// <param name="idKontrahenta">Id kontrahenta</param>
-        /// <param name="idProducts">Lista id produktów wystawiona do sprzedaży</param>
-        public static void DodajZamowienie(InsERT.Subiekt sgt, int idKontrahenta, List<int> idProducts)
+        /// <param name="symbolsProducts">Lista symboli produktów wystawiona do sprzedaży</param>
+        /// <param name="idZakupu">id zakupu z bazy sklepu internetowego</param>
+        /// <returns>Zwraca obiekt Zamowienie</returns>
+        public static void DodajZamowienie(InsERT.Subiekt sgt, int idKontrahenta, List<string> symbolsProducts, string idZakupu)
         {
+            var zamowienie = new Zamowienie();
             var zkDokument = sgt.Dokumenty.Dodaj(SubiektDokumentEnum.gtaSubiektDokumentZK);
-
             zkDokument.KontrahentId = idKontrahenta;
-            foreach (var idProduct in idProducts)
+            
+            foreach (var idProduct in symbolsProducts)
             {
-                zkDokument.Pozycje.Dodaj(idProduct);
+                if (sgt.Towary.Istnieje(idProduct))
+                {
+                    zkDokument.Pozycje.Dodaj(idProduct);
+                }
             }
 
+
             zkDokument.Zapisz();
+            zamowienie.NumerZamowienia = zkDokument.NumerPelny;
+            zamowienie.IdZamowienia = idZakupu;
+            WstawNumerZamowieniaDoBazy(zamowienie);
         }
+
+        /// <summary>
+        /// Sprawdza czy zamówienie już istnieje
+        /// </summary>
+        /// <param name="sgt"></param>
+        /// <param name="numerZamowienia"> Numer zamówienia w subiekcie</param>
+        /// <returns>Zwraca prawde lu fałsz</returns>
+        public static bool SprawdzCzyZamowienieJuzIstnieje(InsERT.Subiekt sgt, string numerZamowienia)
+        {
+            var oDok = sgt.SuDokumentyManager.Istnieje(numerZamowienia);
+            return oDok;
+        }
+
         /// <summary>
         /// Metoda tworzy fakture zaliczkową
         /// </summary>
@@ -289,7 +316,8 @@ namespace subiekt_sfera_test
         /// <param name="nazwaDokumentu">Nazwa (Numer) dokumunetu zamowienia</param>
         /// <param name="typPrzedpalty">Jaki ma być zastosowany typ przedpłaty.
         /// Do wyboru są 3 typy: gotowka, przelew, karta</param>
-        public static void WystawFaktureZaliczkowa(InsERT.Subiekt sgt, string nazwaDokumentu, string typPrzedpalty)
+        /// <param name="kwota">kwota jaka została zapłacona w zaliczce</param>
+        public static void WystawFaktureZaliczkowa(InsERT.Subiekt sgt, string nazwaDokumentu, string typPrzedpalty, double kwota)
         {
             var fsDokument = sgt.Dokumenty.Dodaj(SubiektDokumentEnum.gtaSubiektDokumentFSzal);
             try
@@ -300,15 +328,16 @@ namespace subiekt_sfera_test
                 switch (typPrzedpalty)
                 {
                     case "gotowka":
+                        fsDokument.PlatnoscGotowkaKwota = kwota;
                         break;
 
                     case "przelew":
                         fsDokument.PlatnoscGotowkaKwota = 0;
-                        fsDokument.PlatnoscPrzelewKwota = oDok.KwotaDoZaplaty();
+                        fsDokument.PlatnoscPrzelewKwota = kwota;
                         break;
                     case "karta":
                         fsDokument.PlatnoscGotowkaKwota = 0;
-                        fsDokument.PlatnoscKredytKwota = oDok.KwotaDoZaplaty();
+                        fsDokument.PlatnoscKredytKwota = kwota;
                         break;
                 }
 
@@ -318,9 +347,10 @@ namespace subiekt_sfera_test
             catch (Exception e)
             {
                 Console.WriteLine(e);
-                                throw;
+                throw;
             }
         }
+
         /// <summary>
         /// Metoda tworzy fakture zakliczkową końcową
         /// </summary>
@@ -339,18 +369,19 @@ namespace subiekt_sfera_test
                 fsDokument.Zapisz();
             }
             catch (Exception e)
-            { 
+            {
                 Console.WriteLine(e);
                 throw;
             }
         }
+
         /// <summary>
         /// Metoda wystawia dokumeny wydania towaru zewnętrznego
         /// </summary>
         /// <param name="sgt">Obiekt klasy InsERT.Subiekt</param>
         /// <param name="idKontrahenta">Id kontrahenta z bazy danych</param>
         /// <param name="idProducts">Lista id produktów</param>
-        public static void WydanieZewnetrzne(InsERT.Subiekt sgt, int idKontrahenta, List<int> idProducts )
+        public static void WydanieZewnetrzne(InsERT.Subiekt sgt, int idKontrahenta, List<int> idProducts)
         {
             var wzDokument = sgt.Dokumenty.Dodaj(SubiektDokumentEnum.gtaSubiektDokumentWZv);
             wzDokument.KontrahentId = idKontrahenta;
@@ -359,7 +390,221 @@ namespace subiekt_sfera_test
                 wzDokument.Pozycje.Dodaj(idProduct);
             }
             wzDokument.Zapisz();
-
         }
-    }   
+
+        /// <summary>
+        /// Metoda zwraca aktualnego kontrahenta który dokonał operacji na tabeli oreder
+        /// </summary>
+        /// <returns>Zwraca obiekt Kontrahent</returns>
+        public static Kontrahent PobierzKontrahenta()
+        {
+            var kontrahent = new Kontrahent();
+//            kontrahent.Zamowienie = new Zamowienie();
+            var portalGamesConnString = new MySqlConnectionStringBuilder
+            {
+                Server = ConfigConnection.PortalGamesServer,
+                UserID = ConfigConnection.PortalGamesUser,
+                Password = ConfigConnection.PortalGamesPassword,
+                Database = ConfigConnection.PortalGamesBaza
+            };
+
+            var sqlCommand = "select * from baza8706_devportalgames.`order` order by 1 desc LIMIT 1;";
+            using (var conn = new MySqlConnection(portalGamesConnString.ToString()))
+            {
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = sqlCommand;
+
+                    conn.Open();
+                    var reader = cmd.ExecuteReader();
+
+                    while (reader.Read())
+                    {
+                        kontrahent.IdZakupu = reader["id"].ToString();
+                        kontrahent.Id = reader["customer_id"].ToString();
+                        kontrahent.Ulica = reader["address_street"].ToString() == string.Empty
+                            ? "brak"
+                            : reader["address_street"].ToString();
+                        kontrahent.Miasto = reader["address_city"].ToString() == string.Empty
+                            ? "brak"
+                            : reader["address_city"].ToString();
+                        kontrahent.Zip = reader["address_zip"].ToString() == string.Empty
+                            ? "brak"
+                            : reader["address_zip"].ToString();
+                        kontrahent.PanstwoKod = reader["address_state_id"].ToString() == string.Empty
+                            ? "brak"
+                            : reader["address_state_id"].ToString();
+                        kontrahent.Nazwa = reader["customer_name"].ToString() == string.Empty
+                            ? "brak"
+                            : reader["customer_name"].ToString();
+                        kontrahent.Imie = reader["maddress_name"].ToString() == string.Empty
+                            ? "brak"
+                            : reader["maddress_name"].ToString();
+                        kontrahent.Nazwisko = reader["maddress_lastname"].ToString() == string.Empty
+                            ? "brak"
+                            : reader["maddress_lastname"].ToString();
+                        kontrahent.Fima = reader["company_name"].ToString() == string.Empty
+                            ? "brak"
+                            : reader["company_name"].ToString();
+                        kontrahent.MiastoKod = reader["address_zip"].ToString() == string.Empty
+                            ? "brak"
+                            : reader["address_zip"].ToString();
+                        kontrahent.NumerZamowienia = reader["order_name"].ToString() == string.Empty
+                            ? "brak"
+                            : reader["order_name"].ToString();
+                        kontrahent.Zamowienie.IdZamowienia = reader["id"].ToString() == string.Empty
+                            ? "brak"
+                            : reader["id"].ToString();
+                        kontrahent.Zamowienie.WplaconaKwota = reader["paid_price"].ToString() == string.Empty
+                            ? "brak"
+                            : reader["paid_price"].ToString();
+                        kontrahent.Zamowienie.KwotaDoZaplaty = reader["sum"].ToString() == string.Empty
+                            ? "brak"
+                            : reader["sum"].ToString();
+                    }
+                }
+            }
+            return kontrahent;
+        }
+
+        /// <summary>
+        /// Metoda odpytuje baze sklepu i zwraca z ostatniego rekordu tabeli zamowien jego id
+        /// </summary>
+        /// <returns>Zwraca id zamowienia</returns>
+        public static void WczytajZamowienie(string id)
+        {
+            var zamowienie = new Zamowienie();
+            var portalGamesConnString = new MySqlConnectionStringBuilder
+            {
+                Server = ConfigConnection.PortalGamesServer,
+                UserID = ConfigConnection.PortalGamesUser,
+                Password = ConfigConnection.PortalGamesPassword,
+                Database = ConfigConnection.PortalGamesBaza
+            };
+
+            var sqlCommand = "select * from baza8706_devportalgames.`order`where id = " + id + ";";
+            using (var conn = new MySqlConnection(portalGamesConnString.ToString()))
+            {
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = sqlCommand;
+
+                    conn.Open();
+                    var reader = cmd.ExecuteReader();
+
+                    while (reader.Read())
+                    {
+                        zamowienie.IdZamowienia = reader["id"].ToString() == string.Empty
+                            ? "brak"
+                            : reader["id"].ToString();
+                        zamowienie.WplaconaKwota = reader["paid_price"].ToString() == string.Empty
+                            ? "brak"
+                            : reader["paid_price"].ToString();
+                        zamowienie.KwotaDoZaplaty = reader["sum"].ToString() == string.Empty
+                            ? "brak"
+                            : reader["sum"].ToString();
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Metoda integrująca sklep internetowy z Subiektem. Najpierw pobiera ostatnie zamówienie z bazy sklepu internetowego 
+        /// nastepnie dodaje kontrahenta do bazy subiekta jeśli jeszcze go nie ma. W kolejnym etapie 
+        /// sprawdza czy istnieje już w subiekcie zamówienie (jeśli nie to do dodaje). Następnie sprawda 
+        /// czy została wpłacona jakaś kwota za produkt, jeśli tak to dodaje wystawia fakture zaliczkową
+        /// a jeśli kwota jest pełna - to znaczy jeśli produkt został w pełni opłacony to wystawia fakturę zaliczkowo końcową
+        /// </summary>
+        /// <param name="sgt">Obiekt klasy InsERT.Subiekt</param>
+        public static void ZakupProces(InsERT.Subiekt sgt)
+        {
+            var kontrahent = PobierzKontrahenta();
+            
+            DodajKontrahenta(sgt, kontrahent.Nazwa, kontrahent.Id, kontrahent.Miasto, kontrahent.Ulica, 1,
+                kontrahent.MiastoKod, kontrahent.Imie, kontrahent.Nazwisko);
+            var kontrahentSubiekt = sgt.Kontrahenci.Wczytaj(kontrahent.Id);
+            int idkontrahentaSubiekt = kontrahentSubiekt.Identyfikator();
+            if (!SprawdzCzyZamowienieJuzIstnieje(sgt, kontrahent.NumerZamowienia))
+            {
+                var listaProduktow = PobierzListeProduktowZZamowienia(kontrahent.IdZakupu);
+                DodajZamowienie(sgt, idkontrahentaSubiekt, listaProduktow, kontrahent.IdZakupu);
+            }
+            if (Convert.ToDouble(kontrahent.Zamowienie.WplaconaKwota) > 0)
+            {
+                WystawFaktureZaliczkowa(sgt, kontrahent.NumerZamowienia, "przelew",Convert.ToDouble(kontrahent.Zamowienie.WplaconaKwota));
+            }
+            if (Convert.ToDouble(kontrahent.Zamowienie.WplaconaKwota) >=
+                Convert.ToDouble(kontrahent.Zamowienie.KwotaDoZaplaty))
+            {
+                WystawFaktureZaliczkowaKoncowa(sgt, kontrahent.NumerZamowienia);
+            }
+        }
+
+        /// <summary>
+        /// Metoda zwraca liste zakupionych produktów w postaci listy ich id 
+        /// </summary>
+        /// <param name="idZamowienia"> Id zamowienia </param>
+        /// <returns>Zwraca liste intów </returns>
+        public static List<string> PobierzListeProduktowZZamowienia(string idZamowienia)
+        {
+            var listaProduktow = new List<string>();
+            var portalGamesConnString = new MySqlConnectionStringBuilder
+            {
+                Server = ConfigConnection.PortalGamesServer,
+                UserID = ConfigConnection.PortalGamesUser,
+                Password = ConfigConnection.PortalGamesPassword,
+                Database = ConfigConnection.PortalGamesBaza
+            };
+
+            var sqlCommand = "select * from order_item where order_id = " + idZamowienia + ";";
+            using (var conn = new MySqlConnection(portalGamesConnString.ToString()))
+            {
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = sqlCommand;
+
+                    conn.Open();
+                    var reader = cmd.ExecuteReader();
+
+                    while (reader.Read())
+                    {
+                        listaProduktow.Add(reader["product_code"].ToString());
+                    }
+                }
+            }
+            return listaProduktow;
+        }
+
+        /// <summary>
+        /// Metoda wstawia numer zamowienia z bazy subiekta do bazy sklepu
+        /// </summary>
+        /// <param name="zamowienie">Obiekt Zamowienie</param>
+        public static void WstawNumerZamowieniaDoBazy(Zamowienie zamowienie)
+        {
+            var portalGamesConnString = new MySqlConnectionStringBuilder
+            {
+                Server = ConfigConnection.PortalGamesServer,
+                UserID = ConfigConnection.PortalGamesUser,
+                Password = ConfigConnection.PortalGamesPassword,
+                Database = ConfigConnection.PortalGamesBaza
+            };
+
+            var sqlCommand = "UPDATE baza8706_devportalgames.`order` SET order_name = '" + zamowienie.NumerZamowienia +
+                             "' WHERE id = " + zamowienie.IdZamowienia + ";";
+            using (var conn = new MySqlConnection(portalGamesConnString.ToString()))
+            {
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = sqlCommand;
+
+                    conn.Open();
+                    var reader = cmd.ExecuteReader();
+
+                    while (reader.Read())
+                    {
+                    }
+                }
+            }
+        }
+    }
 }

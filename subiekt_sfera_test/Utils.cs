@@ -276,7 +276,7 @@ namespace subiekt_sfera_test
         /// <param name="symbolsProducts">Lista symboli produktów wystawiona do sprzedaży</param>
         /// <param name="idZakupu">id zakupu z bazy sklepu internetowego</param>
         /// <returns>Zwraca obiekt Zamowienie</returns>
-        public static void DodajZamowienie(InsERT.Subiekt sgt, int idKontrahenta, List<string> symbolsProducts, string idZakupu)
+        public static void DodajZamowienie(InsERT.Subiekt sgt, int idKontrahenta, List<Produkt> symbolsProducts, string idZakupu)
         {
             var zamowienie = new Zamowienie();
             var zkDokument = sgt.Dokumenty.Dodaj(SubiektDokumentEnum.gtaSubiektDokumentZK);
@@ -286,7 +286,8 @@ namespace subiekt_sfera_test
             {
                 if (sgt.Towary.Istnieje(idProduct))
                 {
-                    zkDokument.Pozycje.Dodaj(idProduct);
+                    zkDokument.Pozycje.Dodaj(idProduct.Symbol);
+                    zkDokument.IloscJm = idProduct.Ilosc;
                 }
             }
 
@@ -317,7 +318,7 @@ namespace subiekt_sfera_test
         /// <param name="typPrzedpalty">Jaki ma być zastosowany typ przedpłaty.
         /// Do wyboru są 3 typy: gotowka, przelew, karta</param>
         /// <param name="kwota">kwota jaka została zapłacona w zaliczce</param>
-        public static void WystawFaktureZaliczkowa(InsERT.Subiekt sgt, string nazwaDokumentu, string typPrzedpalty, double kwota)
+        public static void WystawFaktureZaliczkowa(InsERT.Subiekt sgt, string nazwaDokumentu, string typPrzedpalty, decimal kwota)
         {
             var fsDokument = sgt.Dokumenty.Dodaj(SubiektDokumentEnum.gtaSubiektDokumentFSzal);
             try
@@ -511,7 +512,7 @@ namespace subiekt_sfera_test
         /// <summary>
         /// Metoda integrująca sklep internetowy z Subiektem. Najpierw pobiera ostatnie zamówienie z bazy sklepu internetowego 
         /// nastepnie dodaje kontrahenta do bazy subiekta jeśli jeszcze go nie ma. W kolejnym etapie 
-        /// sprawdza czy istnieje już w subiekcie zamówienie (jeśli nie to do dodaje). Następnie sprawda 
+        /// sprawdza czy istnieje już w subiekcie zamówienie (jeśli nie to je dodaje). Następnie sprawdza 
         /// czy została wpłacona jakaś kwota za produkt, jeśli tak to dodaje wystawia fakture zaliczkową
         /// a jeśli kwota jest pełna - to znaczy jeśli produkt został w pełni opłacony to wystawia fakturę zaliczkowo końcową
         /// </summary>
@@ -524,14 +525,15 @@ namespace subiekt_sfera_test
                 kontrahent.MiastoKod, kontrahent.Imie, kontrahent.Nazwisko);
             var kontrahentSubiekt = sgt.Kontrahenci.Wczytaj(kontrahent.Id);
             int idkontrahentaSubiekt = kontrahentSubiekt.Identyfikator();
-            if (!SprawdzCzyZamowienieJuzIstnieje(sgt, kontrahent.NumerZamowienia))
-            {
-                var listaProduktow = PobierzListeProduktowZZamowienia(kontrahent.IdZakupu);
-                DodajZamowienie(sgt, idkontrahentaSubiekt, listaProduktow, kontrahent.IdZakupu);
-            }
+
             if (Convert.ToDouble(kontrahent.Zamowienie.WplaconaKwota) > 0)
             {
-                WystawFaktureZaliczkowa(sgt, kontrahent.NumerZamowienia, "przelew",Convert.ToDouble(kontrahent.Zamowienie.WplaconaKwota));
+                if (!SprawdzCzyZamowienieJuzIstnieje(sgt, kontrahent.NumerZamowienia))
+                {
+                    var listaProduktow = PobierzListeProduktowZZamowienia(kontrahent.IdZakupu);
+                    DodajZamowienie(sgt, idkontrahentaSubiekt, listaProduktow, kontrahent.IdZakupu);
+                }
+                WystawFaktureZaliczkowa(sgt, kontrahent.NumerZamowienia, "przelew",Convert.ToDecimal(kontrahent.Zamowienie.WplaconaKwota));
             }
             if (Convert.ToDouble(kontrahent.Zamowienie.WplaconaKwota) >=
                 Convert.ToDouble(kontrahent.Zamowienie.KwotaDoZaplaty))
@@ -545,9 +547,10 @@ namespace subiekt_sfera_test
         /// </summary>
         /// <param name="idZamowienia"> Id zamowienia </param>
         /// <returns>Zwraca liste intów </returns>
-        public static List<string> PobierzListeProduktowZZamowienia(string idZamowienia)
+        public static List<Produkt> PobierzListeProduktowZZamowienia(string idZamowienia)
         {
-            var listaProduktow = new List<string>();
+            var listaProduktow = new List<Produkt>();
+            
             var portalGamesConnString = new MySqlConnectionStringBuilder
             {
                 Server = ConfigConnection.PortalGamesServer,
@@ -568,7 +571,14 @@ namespace subiekt_sfera_test
 
                     while (reader.Read())
                     {
-                        listaProduktow.Add(reader["product_code"].ToString());
+                        var produkt = new Produkt
+                        {
+                            Ilosc = Convert.ToInt32(reader["amount"]),
+                            Symbol = (reader["product_code"].ToString())
+                        };
+                        listaProduktow.Add(produkt);
+
+
                     }
                 }
             }

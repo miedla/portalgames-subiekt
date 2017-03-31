@@ -14,6 +14,8 @@ namespace subiekt_sfera_test
             {2, "CZ"}
         };
 
+        public static string NumerZamowienia = "brak";
+
         public static void DodajKontrahenta(InsERT.Subiekt sgt, string nazwa, string symbol, string miejscowosc,
             string ulica, int panstwo, string kodPocztowy, string imie = null, string nazwisko = null)
         {
@@ -276,24 +278,27 @@ namespace subiekt_sfera_test
         /// <param name="symbolsProducts">Lista symboli produktów wystawiona do sprzedaży</param>
         /// <param name="idZakupu">id zakupu z bazy sklepu internetowego</param>
         /// <returns>Zwraca obiekt Zamowienie</returns>
-        public static void DodajZamowienie(InsERT.Subiekt sgt, int idKontrahenta, List<Produkt> symbolsProducts, string idZakupu)
+        public static void DodajZamowienie(InsERT.Subiekt sgt, int idKontrahenta, List<Produkt> symbolsProducts,
+            string idZakupu)
         {
             var zamowienie = new Zamowienie();
             var zkDokument = sgt.Dokumenty.Dodaj(SubiektDokumentEnum.gtaSubiektDokumentZK);
             zkDokument.KontrahentId = idKontrahenta;
-            
+            var i = 1;
             foreach (var idProduct in symbolsProducts)
             {
-                if (sgt.Towary.Istnieje(idProduct))
+                if (sgt.Towary.Istnieje(idProduct.Symbol))
                 {
                     zkDokument.Pozycje.Dodaj(idProduct.Symbol);
-                    zkDokument.IloscJm = idProduct.Ilosc;
+                    zkDokument.Pozycje.Element(i).IloscJm = idProduct.Ilosc;
                 }
+                i++;
             }
 
 
             zkDokument.Zapisz();
             zamowienie.NumerZamowienia = zkDokument.NumerPelny;
+            NumerZamowienia = zkDokument.NumerPelny;
             zamowienie.IdZamowienia = idZakupu;
             WstawNumerZamowieniaDoBazy(zamowienie);
         }
@@ -318,7 +323,8 @@ namespace subiekt_sfera_test
         /// <param name="typPrzedpalty">Jaki ma być zastosowany typ przedpłaty.
         /// Do wyboru są 3 typy: gotowka, przelew, karta</param>
         /// <param name="kwota">kwota jaka została zapłacona w zaliczce</param>
-        public static void WystawFaktureZaliczkowa(InsERT.Subiekt sgt, string nazwaDokumentu, string typPrzedpalty, decimal kwota)
+        public static void WystawFaktureZaliczkowa(InsERT.Subiekt sgt, string nazwaDokumentu, string typPrzedpalty,
+            decimal kwota)
         {
             var fsDokument = sgt.Dokumenty.Dodaj(SubiektDokumentEnum.gtaSubiektDokumentFSzal);
             try
@@ -462,6 +468,29 @@ namespace subiekt_sfera_test
                         kontrahent.Zamowienie.KwotaDoZaplaty = reader["sum"].ToString() == string.Empty
                             ? "brak"
                             : reader["sum"].ToString();
+                        kontrahent.Zamowienie.IloscWplat = reader["payment_id"].ToString() == string.Empty
+                            ? "brak"
+                            : reader["payment_id"].ToString();
+                    }
+                }   
+            }
+            if (Convert.ToInt32(kontrahent.Zamowienie.IloscWplat) > 1)
+            {
+                sqlCommand = "select * from baza8706_devportalgames.order_pay_history where" +
+                             " order_id = " + kontrahent.IdZakupu + " order by 1 desc limit 1;";
+                using (var conn = new MySqlConnection(portalGamesConnString.ToString()))
+                {
+                    using (var cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = sqlCommand;
+
+                        conn.Open();
+                        var reader = cmd.ExecuteReader();
+
+                        while (reader.Read())
+                        {
+                            kontrahent.Zamowienie.WplaconaKwota = reader["price_brutto"].ToString();
+                        }
                     }
                 }
             }
@@ -520,7 +549,7 @@ namespace subiekt_sfera_test
         public static void ZakupProces(InsERT.Subiekt sgt)
         {
             var kontrahent = PobierzKontrahenta();
-            
+
             DodajKontrahenta(sgt, kontrahent.Nazwa, kontrahent.Id, kontrahent.Miasto, kontrahent.Ulica, 1,
                 kontrahent.MiastoKod, kontrahent.Imie, kontrahent.Nazwisko);
             var kontrahentSubiekt = sgt.Kontrahenci.Wczytaj(kontrahent.Id);
@@ -532,8 +561,10 @@ namespace subiekt_sfera_test
                 {
                     var listaProduktow = PobierzListeProduktowZZamowienia(kontrahent.IdZakupu);
                     DodajZamowienie(sgt, idkontrahentaSubiekt, listaProduktow, kontrahent.IdZakupu);
+                    kontrahent.NumerZamowienia = NumerZamowienia;
                 }
-                WystawFaktureZaliczkowa(sgt, kontrahent.NumerZamowienia, "przelew",Convert.ToDecimal(kontrahent.Zamowienie.WplaconaKwota));
+                var kwota = Convert.ToDecimal(kontrahent.Zamowienie.WplaconaKwota);
+                WystawFaktureZaliczkowa(sgt, kontrahent.NumerZamowienia, "przelew", kwota);
             }
             if (Convert.ToDouble(kontrahent.Zamowienie.WplaconaKwota) >=
                 Convert.ToDouble(kontrahent.Zamowienie.KwotaDoZaplaty))
@@ -550,7 +581,7 @@ namespace subiekt_sfera_test
         public static List<Produkt> PobierzListeProduktowZZamowienia(string idZamowienia)
         {
             var listaProduktow = new List<Produkt>();
-            
+
             var portalGamesConnString = new MySqlConnectionStringBuilder
             {
                 Server = ConfigConnection.PortalGamesServer,
@@ -577,8 +608,6 @@ namespace subiekt_sfera_test
                             Symbol = (reader["product_code"].ToString())
                         };
                         listaProduktow.Add(produkt);
-
-
                     }
                 }
             }

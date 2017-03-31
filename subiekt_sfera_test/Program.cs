@@ -43,9 +43,9 @@ namespace subiekt_sfera_test
             //            Utils.DodajKontrahenta(sgt, "Ukaszz", "testowy ze sfery", "9123sd", "Poczesna", "Szkolna", "39");
 //            Utils.GetUsersFromPortalGames(sgt);
             //            sgt.Okno.Widoczne = true;
-            //            var przykladowaListaProduktow = new List<int> {23, 4};
+                        var przykladowaListaProduktow = new List<int> {23, 4};
             //            Utils.DodajParagonImienny(sgt,4,przykladowaListaProduktow);
-            //            Utils.DodajParagon(sgt,przykladowaListaProduktow);
+//                        Utils.DodajParagon(sgt,przykladowaListaProduktow);
             //            Utils.WystawFaktureDetaliczna(sgt,"PA 7/SF/MAG/2017");
             //            var przykladowaListaProduktow = new List<int> { 23, 4 }; Utils.DodajFaktureSprzedazy(sgt,4, przykladowaListaProduktow);
 //                        var przykladowaListaProduktow = new List<int> { 23, 4 }; Utils.DodajZamowienie(sgt,4, przykladowaListaProduktow);
@@ -53,6 +53,7 @@ namespace subiekt_sfera_test
             //            Utils.WystawFaktureZaliczkowaKoncowa(sgt, "ZK 7/SF/MAG/2017");
 //            var przykladowaListaProduktow = new List<int> { 23, 4 }; Utils.WydanieZewnetrzne(sgt,4, przykladowaListaProduktow);
             Utils.ZakupProces(sgt);
+//            Utils.DodajZamowienie2(sgt,4, przykladowaListaProduktow);
             Console.WriteLine("KONIEC"); Console.ReadKey();
             //moj komnetarz
         }

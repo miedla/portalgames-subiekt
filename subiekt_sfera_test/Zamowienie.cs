@@ -14,6 +14,7 @@ namespace subiekt_sfera_test
         public string IloscWplat { get; set; }
         public string IdZamowienia { get; set; }
         public string WplaconaKwota { get; set; }
+        public string WplaconaKwotaSum { get; set; }
         public string KwotaDoZaplaty { get; set; }
     }
 }

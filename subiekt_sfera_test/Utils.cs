@@ -465,6 +465,9 @@ namespace subiekt_sfera_test
                         kontrahent.Zamowienie.WplaconaKwota = reader["paid_price"].ToString() == string.Empty
                             ? "brak"
                             : reader["paid_price"].ToString();
+                        kontrahent.Zamowienie.WplaconaKwotaSum = reader["paid_price"].ToString() == string.Empty
+                            ? "brak"
+                            : reader["paid_price"].ToString();
                         kontrahent.Zamowienie.KwotaDoZaplaty = reader["sum"].ToString() == string.Empty
                             ? "brak"
                             : reader["sum"].ToString();
@@ -566,7 +569,7 @@ namespace subiekt_sfera_test
                 var kwota = Convert.ToDecimal(kontrahent.Zamowienie.WplaconaKwota);
                 WystawFaktureZaliczkowa(sgt, kontrahent.NumerZamowienia, "przelew", kwota);
             }
-            if (Convert.ToDouble(kontrahent.Zamowienie.WplaconaKwota) >=
+            if (Convert.ToDouble(kontrahent.Zamowienie.WplaconaKwotaSum) >=
                 Convert.ToDouble(kontrahent.Zamowienie.KwotaDoZaplaty))
             {
                 WystawFaktureZaliczkowaKoncowa(sgt, kontrahent.NumerZamowienia);

@@ -32,9 +32,10 @@ namespace subiekt_sfera_test
             gt.OperatorHaslo = ConfigConnection.OperatorGThaslo; //"";
             //Debug.WriteLine("gt.Polaczenie: " + gt.Polaczenie.ConnectionString);
 
-            sgt = 
+            sgt =
                 (InsERT.Subiekt)
-                gt.Uruchom((int) InsERT.UruchomDopasujEnum.gtaUruchomDopasujUzytkownika, (int) InsERT.UruchomEnum.gtaUruchom);
+                gt.Uruchom((int) InsERT.UruchomDopasujEnum.gtaUruchomDopasujUzytkownika,
+                    (int) InsERT.UruchomEnum.gtaUruchom);
 
             //sgt.KontrahenciManager.DodajKontrahenta();
             //            Utils.WstawDokumentPrzyjeciaPlatnosci(sgt,1,4,"tytul",15,"PLN");
@@ -43,7 +44,7 @@ namespace subiekt_sfera_test
             //            Utils.DodajKontrahenta(sgt, "Ukaszz", "testowy ze sfery", "9123sd", "Poczesna", "Szkolna", "39");
 //            Utils.GetUsersFromPortalGames(sgt);
             //            sgt.Okno.Widoczne = true;
-                        var przykladowaListaProduktow = new List<int> {23, 4};
+            var przykladowaListaProduktow = new List<int> {23, 4};
             //            Utils.DodajParagonImienny(sgt,4,przykladowaListaProduktow);
 //                        Utils.DodajParagon(sgt,przykladowaListaProduktow);
             //            Utils.WystawFaktureDetaliczna(sgt,"PA 7/SF/MAG/2017");
@@ -52,9 +53,12 @@ namespace subiekt_sfera_test
             //            Utils.WystawFaktureZaliczkowa(sgt, "ZK 7/SF/MAG/2017", "przelew");
             //            Utils.WystawFaktureZaliczkowaKoncowa(sgt, "ZK 7/SF/MAG/2017");
 //            var przykladowaListaProduktow = new List<int> { 23, 4 }; Utils.WydanieZewnetrzne(sgt,4, przykladowaListaProduktow);
-            Utils.ZakupProces(sgt);
+//            Utils.ZakupProces(sgt);
+            Utils.WstapProduktDoBazySklepu("3", "23", "123", "333", "8", "1", "1", "krystian4321", "2903757", "35029", "8765",
+                "karton", "0", "krystian plansza", "gra planszowa");
 //            Utils.DodajZamowienie2(sgt,4, przykladowaListaProduktow);
-            Console.WriteLine("KONIEC"); Console.ReadKey();
+            Console.WriteLine("KONIEC");
+            Console.ReadKey();
             //moj komnetarz
         }
     }

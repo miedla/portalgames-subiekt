@@ -475,7 +475,7 @@ namespace subiekt_sfera_test
                             ? "brak"
                             : reader["payment_id"].ToString();
                     }
-                }   
+                }
             }
             if (Convert.ToInt32(kontrahent.Zamowienie.IloscWplat) > 1)
             {
@@ -644,6 +644,116 @@ namespace subiekt_sfera_test
 
                     while (reader.Read())
                     {
+                    }
+                }
+            }
+        }
+        /// <summary>
+        /// Metoda dodaje do bazy sklepu intenetowego produkt. 
+        /// </summary>
+        /// <param name="modify_user_id">id usera ktory dodał ten produkt? W bazie wartosci są w zakresie od 0 do 3</param>
+        /// <param name="tax_rate">Nie wiem co to. W bazie czesto wystepuje jako liczba 23</param>
+        /// <param name="price">Cena produktu</param>
+        /// <param name="price_old">Stara cena produktu</param>
+        /// <param name="delivery_cost">Koszt dostawy</param>
+        /// <param name="label_new">Wartosc 0 lub 1. Czy produkt jest nowoscią?</param>
+        /// <param name="label_preorder">Wartość 0 lub 1. Czy produkt jest jako preorder</param>
+        /// <param name="code">Unikalny kod produktu</param>
+        /// <param name="custom_id">Nie wiem za bardzo co to. Czesto wystepuje w wielkiej liczbie (2900000) lub 0 </param>
+        /// <param name="amount">Czesto wystepuje w licznie 35029</param>
+        /// <param name="weight">Waga produktu </param>
+        /// <param name="packaging">Forma pokowania - 'karton','paleta'</param>
+        /// <param name="packaging_amount">Prawie zawsze wysteuje w formie 0 ale moze tez przyjac 1</param>
+        /// <param name="nazwaProduktu">Nazwa produktu</param>
+        /// <param name="opisProduktu">Opis danego produktu</param>
+        public static void WstapProduktDoBazySklepu(string modify_user_id, string tax_rate, string price,
+            string price_old, string delivery_cost, string label_new, string label_preorder, string code,
+            string custom_id, string amount, string weight, string packaging, string packaging_amount, string nazwaProduktu, string opisProduktu)
+        {
+            var id = 0;
+            var portalGamesConnString = new MySqlConnectionStringBuilder
+            {
+                Server = ConfigConnection.PortalGamesServer,
+                UserID = ConfigConnection.PortalGamesUser,
+                Password = ConfigConnection.PortalGamesPassword,
+                Database = ConfigConnection.PortalGamesBaza
+            };
+
+            var sqlCommand = "INSERT INTO baza8706_devportalgames.product (" +
+                             "modify_user_id," +
+                             "modify_user_ip," +
+                             "tax_rate, " +
+                             "price, " +
+                             "price_old, " +
+                             "delivery_cost, " +
+                             "label_new, " +
+                             "label_preorder, " +
+                             "code, " +
+                             "custom_id, " +
+                             "amount, " +
+                             "weight," +
+                             "packaging," +
+                             "packaging_amount) values(" +
+                             "" + "modify_user_id" + ", " +
+                             "'192.168.1.1', " +
+                             "" + tax_rate + ", " +
+                             "" + price + ", " +
+                             "" + price_old + ", " +
+                             "" + delivery_cost + ", " +
+                             "" + label_new + ", " +
+                             "" + label_preorder + ", " +
+                             "'" + code + "', " +
+                             "" + custom_id + ", " +
+                             "" + amount + ", " +
+                             "" + weight + ", " +
+                             "'" + packaging + "', " +
+                             "" + packaging_amount + "); ";
+
+            using (var conn = new MySqlConnection(portalGamesConnString.ToString()))
+            {
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = sqlCommand;
+
+                    conn.Open();
+                    var reader = cmd.ExecuteReader();
+
+                    while (reader.Read())
+                    {
+                        
+                    }
+                }
+            }
+            sqlCommand = "SELECT * FROM product order by 1 desc limit 1;";
+            using (var conn = new MySqlConnection(portalGamesConnString.ToString()))
+            {
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = sqlCommand;
+
+                    conn.Open();
+                    var reader = cmd.ExecuteReader();
+
+                    while (reader.Read())
+                    {
+                        id = Convert.ToInt32(reader["id"]);
+                    }
+                }
+            }
+
+            sqlCommand = "insert into product_description (lang, name, name2, description, tags, product_id) values ('pl', '"+ nazwaProduktu + "', '', '" + opisProduktu + "', '', "+ id +");";
+            using (var conn = new MySqlConnection(portalGamesConnString.ToString()))
+            {
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = sqlCommand;
+
+                    conn.Open();
+                    var reader = cmd.ExecuteReader();
+
+                    while (reader.Read())
+                    {
+
                     }
                 }
             }

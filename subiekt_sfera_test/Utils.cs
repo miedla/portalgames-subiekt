@@ -313,6 +313,7 @@ namespace subiekt_sfera_test
         {
             var zamowienie = new Zamowienie();
             var zkDokument = sgt.Dokumenty.Dodaj(SubiektDokumentEnum.gtaSubiektDokumentZK);
+            
             zkDokument.KontrahentId = idKontrahenta;
             var i = 1;
             foreach (var idProduct in symbolsProducts)
@@ -358,15 +359,21 @@ namespace subiekt_sfera_test
         {
             //var fsDokument = sgt.Dokumenty.Dodaj(SubiektDokumentEnum.gtaSubiektDokumentFSzal);
             SuDokument fsDokument = sgt.Dokumenty.Dodaj(SubiektDokumentEnum.gtaSubiektDokumentFSzal);
+            SuDokument fzaliczkowa = sgt.SuDokumentyManager.DodajFSzal();
             try
             {
                 var oDok = sgt.SuDokumentyManager.Wczytaj(nazwaDokumentu);
 
+                fzaliczkowa.NaPodstawie(oDok.Identyfikator);
+
                 fsDokument.NaPodstawie(oDok.Identyfikator);
                 ///
                 //fsDokument.AutoPrzeliczanie = false;
-                //object dokumentStatusEnum = fsDokument.StatusDokumentu;
+                //object dokumentStatusEnum = oDok.StatusDokumentu;
                 //fsDokument.StatusDokumentu = SubiektDokumentStatusEnum.gtaSubiektDokumentStatusOdlozony;
+
+                Console.WriteLine("typ przedlapty: "+ typPrzedpalty);
+                Console.WriteLine("kwota: " + kwota);
 
                 switch (typPrzedpalty)
                 {
@@ -375,8 +382,8 @@ namespace subiekt_sfera_test
                         break;
 
                     case "przelew":
-                        fsDokument.PlatnoscGotowkaKwota = 0;
-                        fsDokument.PlatnoscPrzelewKwota = kwota;
+                        fsDokument.PlatnoscPrzelewKwota = (Decimal)kwota;//kwota;
+                        fsDokument.PlatnoscGotowkaKwota = 0;//15;//0;
                         break;
                     case "karta":
                         fsDokument.PlatnoscGotowkaKwota = 0;
@@ -389,11 +396,13 @@ namespace subiekt_sfera_test
                 fsDokument.Przelicz();
                 fsDokument.Zapisz();
 
-                //Marshal.ReleaseComObject(fsDokument);
+                Marshal.ReleaseComObject(fsDokument);
             }
             catch (Exception e)
             {
-                //Console.WriteLine(e);
+                Console.WriteLine(e.ToString());
+                //sgt.Zakoncz();
+                //Environment.Exit(1);
                 //Console.WriteLine("typPrzedpalty: " + typPrzedpalty);
                 //Console.WriteLine("kwota: " + kwota);
                 //throw;
@@ -407,7 +416,7 @@ namespace subiekt_sfera_test
         /// <param name="nazwaDokumentu">Nazwa (Numer) dokumunetu zamowienia</param>
         public static void WystawFaktureZaliczkowaKoncowa(InsERT.Subiekt sgt, string nazwaDokumentu)
         {
-            var fsDokument = sgt.Dokumenty.Dodaj(SubiektDokumentEnum.gtaSubiektDokumentFSzalkonc);
+            SuDokument fsDokument = sgt.Dokumenty.Dodaj(SubiektDokumentEnum.gtaSubiektDokumentFSzalkonc);
             try
             {
                 var oDok = sgt.SuDokumentyManager.Wczytaj(nazwaDokumentu);
@@ -416,10 +425,13 @@ namespace subiekt_sfera_test
 
                 fsDokument.Przelicz();
                 fsDokument.Zapisz();
+
             }
             catch (Exception e)
             {
-                //Console.WriteLine(e);
+                //Console.WriteLine(e.ToString());
+                //sgt.Zakoncz();
+                //Environment.Exit(1);
                 //throw;
             }
         }
@@ -519,12 +531,26 @@ namespace subiekt_sfera_test
                         kontrahent.Zamowienie.WplaconaKwotaSum = reader["paid_price"].ToString() == string.Empty
                             ? "brak"
                             : reader["paid_price"].ToString();
-                        kontrahent.Zamowienie.KwotaDoZaplaty = reader["sum"].ToString() == string.Empty
-                            ? "brak"
+                        //kontrahent.Zamowienie.KwotaDoZaplaty = reader["sum"].ToString() == string.Empty
+                        //    ? "brak"
+                        //    : reader["sum"].ToString();
+                        kontrahent.Zamowienie.WartoscProduktu = reader["sum"].ToString() == string.Empty
+                            ? "0"
                             : reader["sum"].ToString();
-                        kontrahent.Zamowienie.IloscWplat = reader["payment_id"].ToString() == string.Empty
-                            ? "brak"
+                        //kontrahent.Zamowienie.IloscWplat = reader["payment_id"].ToString() == string.Empty
+                        //    ? "brak"
+                        //    : reader["payment_id"].ToString();//jakie ilosc wplat toz to jest id rodzaju platnosci!
+                        kontrahent.Zamowienie.WplataRodzaj = reader["payment_id"].ToString() == string.Empty
+                            ? "0"
                             : reader["payment_id"].ToString();
+                        kontrahent.Zamowienie.DostawaKwota = reader["postage_price"].ToString() == string.Empty
+                            ? "0"
+                            : reader["postage_price"].ToString();
+                        kontrahent.Zamowienie.DostawaRodzaj = reader["postage_id"].ToString() == string.Empty
+                            ? "0"
+                            : reader["postage_id"].ToString();
+
+                        kontrahent.Zamowienie.KwotaDoZaplaty = kontrahent.Zamowienie.WartoscProduktu + kontrahent.Zamowienie.DostawaKwota;
                     }
                 }
             }
@@ -605,6 +631,7 @@ namespace subiekt_sfera_test
             //Console.WriteLine("Zakup Proces order_id: "+order_id);
             var kontrahent = PobierzKontrahenta(order_id);
 
+            ///Nalezy sprawdzac czy faktura koncowa zostala juz wystawiona, jesli tak to zakonczyc na tym.
             if (kontrahent != null)
             {
                 //Console.WriteLine("kontrahent != null");
@@ -627,13 +654,19 @@ namespace subiekt_sfera_test
                     {
                         //Console.WriteLine("Zamowienie istnieje!");
                         var listaProduktow = PobierzListeProduktowZZamowienia(kontrahent.IdZakupu);
-                        //Console.WriteLine("lista produktow: "+listaProduktow.Count());
+                        //Console.WriteLine("lista produktow.Count: "+listaProduktow.Count());
                         DodajZamowienie(sgt, idkontrahentaSubiekt, listaProduktow, kontrahent.IdZakupu);
                         kontrahent.NumerZamowienia = NumerZamowienia;
                     }
+                    //Console.WriteLine("zamowienie juz istnieje");
                     var kwota = Convert.ToDecimal(kontrahent.Zamowienie.WplaconaKwota);
                     WystawFaktureZaliczkowa(sgt, kontrahent.NumerZamowienia, "przelew", kwota);
                 }
+                ///Jesli wplacona kwota jest ROWNA kwocie do zaplaty to wystawiac fakture koncowa, 
+                ///jesli mniejsza to idzie faktura zaliczeniowa, 
+                ///jesli większa to nie wrzucac ani faktury zaliczeniowej ani koncowej tylko oznaczyc zamowienie, ze jest blad
+                ///W platnosci gotowka i karta bedzie tylko 1 faktura zaliczeniowa
+                ///W platnosci przelewem moze wystapic wiele faktur zaliczeniowych
                 if (Convert.ToDouble(kontrahent.Zamowienie.WplaconaKwotaSum) >=
                     Convert.ToDouble(kontrahent.Zamowienie.KwotaDoZaplaty))
                 {
@@ -722,7 +755,7 @@ namespace subiekt_sfera_test
         /// Metoda dodaje do bazy sklepu intenetowego produkt. 
         /// </summary>
         /// <param name="modify_user_id">id usera ktory dodał ten produkt? W bazie wartosci są w zakresie od 0 do 3</param>
-        /// <param name="tax_rate">Nie wiem co to. W bazie czesto wystepuje jako liczba 23</param>
+        /// <param name="tax_rate">Nie wiem co to. W bazie czesto wystepuje jako liczba 23. Pewnie podatek</param>
         /// <param name="price">Cena produktu</param>
         /// <param name="price_old">Stara cena produktu</param>
         /// <param name="delivery_cost">Koszt dostawy</param>
@@ -730,7 +763,7 @@ namespace subiekt_sfera_test
         /// <param name="label_preorder">Wartość 0 lub 1. Czy produkt jest jako preorder</param>
         /// <param name="code">Unikalny kod produktu</param>
         /// <param name="custom_id">Nie wiem za bardzo co to. Czesto wystepuje w wielkiej liczbie (2900000) lub 0 </param>
-        /// <param name="amount">Czesto wystepuje w licznie 35029</param>
+        /// <param name="amount">Czesto wystepuje w licznie 35029. Pewnie ilosc</param>
         /// <param name="weight">Waga produktu </param>
         /// <param name="packaging">Forma pokowania - 'karton','paleta'</param>
         /// <param name="packaging_amount">Prawie zawsze wysteuje w formie 0 ale moze tez przyjac 1</param>

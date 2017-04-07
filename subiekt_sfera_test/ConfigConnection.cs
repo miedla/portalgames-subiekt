@@ -9,7 +9,7 @@ namespace subiekt_sfera_test
     public static class ConfigConnection
     {
         public static string ServerGt = "(local)\\INSERTGT";
-        public static string BazaGt = "test3";
+        public static string BazaGt = "test4";
         public static string OperatorGt = "Szef";
         public static string OperatorGThaslo = "";
         public static string Uzytkownik = "sa";//"sa"; 

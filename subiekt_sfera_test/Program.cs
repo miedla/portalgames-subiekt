@@ -34,8 +34,8 @@ namespace subiekt_sfera_test
 
             sgt =
                 (InsERT.Subiekt)
-                gt.Uruchom((int) InsERT.UruchomDopasujEnum.gtaUruchomDopasujUzytkownika,
-                    (int) InsERT.UruchomEnum.gtaUruchom);
+                gt.Uruchom((int) InsERT.UruchomDopasujEnum.gtaUruchomDopasuj,
+                    (int) InsERT.UruchomEnum.gtaUruchomWTle);
 
             try
             {
@@ -45,11 +45,12 @@ namespace subiekt_sfera_test
                 if (int.TryParse(order_idString, out order_id))
                 {
                     Utils.ZakupProces(sgt, order_id);
-                    //Console.WriteLine("Zakup proces finito");
+                    //sgt.Zakoncz();
+                    Console.WriteLine("Zakup proces finito");
                 }
             }catch(Exception e)
             {
-                //Console.WriteLine(e.ToString());
+                Console.WriteLine(e.ToString());
             }
             
 
@@ -72,10 +73,10 @@ namespace subiekt_sfera_test
 //            Utils.ZakupProces(sgt);
             Utils.WstapProduktDoBazySklepu("3", "23", "123", "333", "8", "1", "1", "krystian4321", "2903757", "35029", "8765",
                 "karton", "0", "krystian plansza", "gra planszowa");
-//            Utils.DodajZamowienie2(sgt,4, przykladowaListaProduktow);
+            //            Utils.DodajZamowienie2(sgt,4, przykladowaListaProduktow);
             //Console.WriteLine("KONIEC");
             //ExecuteCommand(@"net stop subiekt_srv");
-            //Console.ReadKey();
+            Console.ReadKey();
             //moj komnetarz
         }
     }

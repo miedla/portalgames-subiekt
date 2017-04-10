@@ -45,7 +45,7 @@ namespace subiekt_sfera_test
                 if (int.TryParse(order_idString, out order_id))
                 {
                     Utils.ZakupProces(sgt, order_id);
-                    //sgt.Zakoncz();
+                    sgt.Zakoncz();
                     Console.WriteLine("Zakup proces finito");
                 }
             }catch(Exception e)

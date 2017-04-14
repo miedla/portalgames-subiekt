@@ -3,6 +3,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using InsERT;
+using System.Runtime.InteropServices;
 
 namespace subiekt_sfera_test
 {
@@ -12,6 +13,19 @@ namespace subiekt_sfera_test
         {
             {1, "PL"},
             {2, "CZ"}
+        };
+
+        public static Dictionary<string, int> dostawy = new Dictionary<string, int>
+        {
+            {"DOST5", 5}
+        };
+
+        public static MySqlConnectionStringBuilder portalGamesConnString = new MySqlConnectionStringBuilder
+        {
+            Server = ConfigConnection.PortalGamesServer,
+            UserID = ConfigConnection.PortalGamesUser,
+            Password = ConfigConnection.PortalGamesPassword,
+            Database = ConfigConnection.PortalGamesBaza
         };
 
         public static string NumerZamowienia = "brak";
@@ -88,15 +102,36 @@ namespace subiekt_sfera_test
             }
         }
 
+        //public static void GetUserFromPortalGames(int order_id, InsERT.Subiekt sgt)
+        //{
+        //    Kontrahent k = PobierzKontrahenta(order_id);
+
+        //    string nazwa = k.Nazwa;
+        //    string symbol = k.Id;
+        //    string miejscowosc = k.Miasto;
+        //    string ulica = k.Ulica;
+        //    string kod_pocztowy = k.MiastoKod;
+        //    string imie = k.Imie;
+        //    string nazwisko = k.Nazwisko;
+        //    int panstwo_id = 1;
+        //    if (!string.IsNullOrEmpty(k.PanstwoKod))
+        //    {
+        //        panstwo_id =
+        //            panstwa.Where(p => p.Value.Equals(k.PanstwoKod)).Select(p => p.Key).FirstOrDefault();
+        //    }
+
+        //    DodajKontrahenta(sgt, nazwa, symbol, miejscowosc, ulica, panstwo_id, kod_pocztowy, imie, nazwisko);
+        //}
+
         public static void GetUsersFromPortalGames(InsERT.Subiekt sgt)
         {
-            var portalGamesConnString = new MySqlConnectionStringBuilder
-            {
-                Server = ConfigConnection.PortalGamesServer,
-                UserID = ConfigConnection.PortalGamesUser,
-                Password = ConfigConnection.PortalGamesPassword,
-                Database = ConfigConnection.PortalGamesBaza
-            };
+            //var portalGamesConnString = new MySqlConnectionStringBuilder
+            //{
+            //    Server = ConfigConnection.PortalGamesServer,
+            //    UserID = ConfigConnection.PortalGamesUser,
+            //    Password = ConfigConnection.PortalGamesPassword,
+            //    Database = ConfigConnection.PortalGamesBaza
+            //};
 
             using (MySqlConnection conn = new MySqlConnection(portalGamesConnString.ToString()))
             {
@@ -122,9 +157,9 @@ namespace subiekt_sfera_test
                         string zip = reader["address_zip"].ToString() == string.Empty
                             ? "brak"
                             : reader["address_zip"].ToString();
-                        string panstwo_kod = reader["address_state_id"].ToString() == string.Empty
-                            ? "brak"
-                            : reader["address_state_id"].ToString();
+                        string panstwo_kod = reader["address_state_id"].ToString();// == string.Empty
+                            //? "brak"
+                            //: reader["address_state_id"].ToString();
                         string nazwa = reader["customer_name"].ToString() == string.Empty
                             ? "brak"
                             : reader["customer_name"].ToString();
@@ -246,7 +281,7 @@ namespace subiekt_sfera_test
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                //Console.WriteLine(e);
 //                throw;
             }
         }
@@ -279,10 +314,11 @@ namespace subiekt_sfera_test
         /// <param name="idZakupu">id zakupu z bazy sklepu internetowego</param>
         /// <returns>Zwraca obiekt Zamowienie</returns>
         public static void DodajZamowienie(InsERT.Subiekt sgt, int idKontrahenta, List<Produkt> symbolsProducts,
-            string idZakupu)
+            string idZakupu, Kontrahent k)
         {
             var zamowienie = new Zamowienie();
             var zkDokument = sgt.Dokumenty.Dodaj(SubiektDokumentEnum.gtaSubiektDokumentZK);
+            
             zkDokument.KontrahentId = idKontrahenta;
             var i = 1;
             foreach (var idProduct in symbolsProducts)
@@ -295,11 +331,20 @@ namespace subiekt_sfera_test
                 i++;
             }
 
+            if (k.Zamowienie.DostawaRodzaj == null)
+            {
+                Console.WriteLine("dostawa rodzaj null");
+                k.Zamowienie.DostawaRodzaj = "DOST5";
+            }
+            else {
+                zkDokument.Pozycje.Dodaj(k.Zamowienie.DostawaRodzaj);
+            }
+
 
             zkDokument.Zapisz();
             zamowienie.NumerZamowienia = zkDokument.NumerPelny;
             NumerZamowienia = zkDokument.NumerPelny;
-            zamowienie.IdZamowienia = idZakupu;
+            zamowienie.IdZamowienia = int.Parse(idZakupu);
             WstawNumerZamowieniaDoBazy(zamowienie);
         }
 
@@ -323,38 +368,67 @@ namespace subiekt_sfera_test
         /// <param name="typPrzedpalty">Jaki ma być zastosowany typ przedpłaty.
         /// Do wyboru są 3 typy: gotowka, przelew, karta</param>
         /// <param name="kwota">kwota jaka została zapłacona w zaliczce</param>
-        public static void WystawFaktureZaliczkowa(InsERT.Subiekt sgt, string nazwaDokumentu, string typPrzedpalty,
+        public static void WystawFaktureZaliczkowa(InsERT.Subiekt sgt, string nazwaDokumentu, int typPrzedpalty,
             decimal kwota)
         {
-            var fsDokument = sgt.Dokumenty.Dodaj(SubiektDokumentEnum.gtaSubiektDokumentFSzal);
+            //var fsDokument = sgt.Dokumenty.Dodaj(SubiektDokumentEnum.gtaSubiektDokumentFSzal);
+            SuDokument fsDokument = sgt.Dokumenty.Dodaj(SubiektDokumentEnum.gtaSubiektDokumentFSzal);
+            SuDokument fzaliczkowa = sgt.SuDokumentyManager.DodajFSzal();
             try
             {
                 var oDok = sgt.SuDokumentyManager.Wczytaj(nazwaDokumentu);
 
+                fzaliczkowa.NaPodstawie(oDok.Identyfikator);
+
                 fsDokument.NaPodstawie(oDok.Identyfikator);
+                ///
+                //fsDokument.AutoPrzeliczanie = false;
+                //object dokumentStatusEnum = oDok.StatusDokumentu;
+                //fsDokument.StatusDokumentu = SubiektDokumentStatusEnum.gtaSubiektDokumentStatusOdlozony;
+
+                Console.WriteLine("typ przedlapty: "+ typPrzedpalty);
+                Console.WriteLine("kwota: " + kwota);
+
                 switch (typPrzedpalty)
                 {
-                    case "gotowka":
-                        fsDokument.PlatnoscGotowkaKwota = kwota;
+                    case 2:
+                        Console.WriteLine("case 2");
+                        fsDokument.PlatnoscGotowkaKwota = (decimal)0;
+                        fsDokument.PlatnoscKartaKwota = (decimal)0;
+                        fsDokument.PlatnoscPrzelewKwota = (decimal)kwota;
+                        //fsDokument.PlatnoscGotowkaKwota = kwota;
+                        //Console.WriteLine("fsDokument.Przedplaty.WartoscPrzelew: " + fsDokument.Przedplaty.WartoscPrzelew);
                         break;
+       
+                        //case "gotowka":
+                        //    fsDokument.PlatnoscGotowkaKwota = kwota;
+                        //    break;
 
-                    case "przelew":
-                        fsDokument.PlatnoscGotowkaKwota = 0;
-                        fsDokument.PlatnoscPrzelewKwota = kwota;
-                        break;
-                    case "karta":
-                        fsDokument.PlatnoscGotowkaKwota = 0;
-                        fsDokument.PlatnoscKredytKwota = kwota;
-                        break;
+                        //case "przelew":
+                        //    fsDokument.PlatnoscPrzelewKwota = kwota;//kwota;
+                        //    fsDokument.PlatnoscGotowkaKwota = 0;//15;//0;
+                        //    break;
+                        //case "karta":
+                        //    fsDokument.PlatnoscGotowkaKwota = 0;
+                        //    fsDokument.PlatnoscKredytKwota = kwota;
+                        //    break;
                 }
+
+                //fsDokument.StatusDokumentu = dokumentStatusEnum;
 
                 fsDokument.Przelicz();
                 fsDokument.Zapisz();
+
+                Marshal.ReleaseComObject(fsDokument);
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
-                throw;
+                Console.WriteLine(e.ToString());
+                //sgt.Zakoncz();
+                //Environment.Exit(1);
+                //Console.WriteLine("typPrzedpalty: " + typPrzedpalty);
+                //Console.WriteLine("kwota: " + kwota);
+                //throw;
             }
         }
 
@@ -363,22 +437,43 @@ namespace subiekt_sfera_test
         /// </summary>
         /// <param name="sgt">Obiekt klasy InsERT.Subiekt</param>
         /// <param name="nazwaDokumentu">Nazwa (Numer) dokumunetu zamowienia</param>
-        public static void WystawFaktureZaliczkowaKoncowa(InsERT.Subiekt sgt, string nazwaDokumentu)
+        public static void WystawFaktureZaliczkowaKoncowa(InsERT.Subiekt sgt, Kontrahent k)//string nazwaDokumentu, Zamowienie z
         {
-            var fsDokument = sgt.Dokumenty.Dodaj(SubiektDokumentEnum.gtaSubiektDokumentFSzalkonc);
+            SuDokument fsDokument = sgt.Dokumenty.Dodaj(SubiektDokumentEnum.gtaSubiektDokumentFSzalkonc);
             try
             {
-                var oDok = sgt.SuDokumentyManager.Wczytaj(nazwaDokumentu);
+                var oDok = sgt.SuDokumentyManager.Wczytaj(k.NumerZamowienia);//nazwaDokumentu
 
                 fsDokument.NaPodstawie(oDok.Identyfikator);
-
+                string fz_iden = fsDokument.Identyfikator;
                 fsDokument.Przelicz();
                 fsDokument.Zapisz();
+
+                using (MySqlConnection conn = new MySqlConnection(portalGamesConnString.ToString()))
+                {
+                    using (MySqlCommand cmd = conn.CreateCommand())
+                    {
+                        Console.WriteLine("fz_iden: " + fz_iden);
+
+                        string sqlCommand =
+                            "UPDATE baza8706_devportalgames.`order` SET faktura_koncowa_number = @fkn WHERE id = @order_id";
+
+                        cmd.Parameters.AddWithValue("@fkn", fz_iden);
+                        cmd.Parameters.AddWithValue("@order_id", k.Zamowienie.IdZamowienia);
+                        cmd.CommandText = sqlCommand;
+
+                        conn.Open();
+
+                        cmd.ExecuteNonQuery();
+                    }
+                }
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
-                throw;
+                //Console.WriteLine(e.ToString());
+                //sgt.Zakoncz();
+                //Environment.Exit(1);
+                //throw;
             }
         }
 
@@ -403,27 +498,36 @@ namespace subiekt_sfera_test
         /// Metoda zwraca aktualnego kontrahenta który dokonał operacji na tabeli oreder
         /// </summary>
         /// <returns>Zwraca obiekt Kontrahent</returns>
-        public static Kontrahent PobierzKontrahenta()
+        public static Kontrahent PobierzKontrahenta(int order_id)
         {
             var kontrahent = new Kontrahent();
-//            kontrahent.Zamowienie = new Zamowienie();
-            var portalGamesConnString = new MySqlConnectionStringBuilder
-            {
-                Server = ConfigConnection.PortalGamesServer,
-                UserID = ConfigConnection.PortalGamesUser,
-                Password = ConfigConnection.PortalGamesPassword,
-                Database = ConfigConnection.PortalGamesBaza
-            };
+            //            kontrahent.Zamowienie = new Zamowienie();
+            //var portalGamesConnString = new MySqlConnectionStringBuilder
+            //{
+            //    Server = ConfigConnection.PortalGamesServer,
+            //    UserID = ConfigConnection.PortalGamesUser,
+            //    Password = ConfigConnection.PortalGamesPassword,
+            //    Database = ConfigConnection.PortalGamesBaza
+            //};
 
-            var sqlCommand = "select * from baza8706_devportalgames.`order` order by 1 desc LIMIT 1;";
+            //var sqlCommand = "select * from baza8706_devportalgames.`order` order by 1 desc LIMIT 1;";
+            var sqlCommand = "select * from baza8706_devportalgames.`order`WHERE id = @order_id;";
+            
             using (var conn = new MySqlConnection(portalGamesConnString.ToString()))
             {
                 using (var cmd = conn.CreateCommand())
                 {
                     cmd.CommandText = sqlCommand;
-
+                    cmd.Parameters.AddWithValue("@order_id", order_id);
+                    //Console.WriteLine("connection string: " + conn.ConnectionString);
                     conn.Open();
                     var reader = cmd.ExecuteReader();
+
+                    if (!reader.HasRows)
+                    {
+                        //Console.WriteLine("Kontrahent o podanym id nie istnieje!");
+                        return null;
+                    }
 
                     while (reader.Read())
                     {
@@ -438,9 +542,9 @@ namespace subiekt_sfera_test
                         kontrahent.Zip = reader["address_zip"].ToString() == string.Empty
                             ? "brak"
                             : reader["address_zip"].ToString();
-                        kontrahent.PanstwoKod = reader["address_state_id"].ToString() == string.Empty
-                            ? "brak"
-                            : reader["address_state_id"].ToString();
+                        kontrahent.PanstwoKod = reader["address_state_id"].ToString();//== string.Empty
+                            //? "brak"
+                            //: reader["address_state_id"].ToString();
                         kontrahent.Nazwa = reader["customer_name"].ToString() == string.Empty
                             ? "brak"
                             : reader["customer_name"].ToString();
@@ -459,21 +563,34 @@ namespace subiekt_sfera_test
                         kontrahent.NumerZamowienia = reader["order_name"].ToString() == string.Empty
                             ? "brak"
                             : reader["order_name"].ToString();
-                        kontrahent.Zamowienie.IdZamowienia = reader["id"].ToString() == string.Empty
-                            ? "brak"
-                            : reader["id"].ToString();
+                        kontrahent.Zamowienie.IdZamowienia = int.Parse(reader["id"].ToString());
                         kontrahent.Zamowienie.WplaconaKwota = reader["paid_price"].ToString() == string.Empty
                             ? "brak"
                             : reader["paid_price"].ToString();
                         kontrahent.Zamowienie.WplaconaKwotaSum = reader["paid_price"].ToString() == string.Empty
                             ? "brak"
                             : reader["paid_price"].ToString();
-                        kontrahent.Zamowienie.KwotaDoZaplaty = reader["sum"].ToString() == string.Empty
-                            ? "brak"
+                        //kontrahent.Zamowienie.KwotaDoZaplaty = reader["sum"].ToString() == string.Empty
+                        //    ? "brak"
+                        //    : reader["sum"].ToString();
+                        kontrahent.Zamowienie.WartoscProduktu = reader["sum"].ToString() == string.Empty
+                            ? "0"
                             : reader["sum"].ToString();
-                        kontrahent.Zamowienie.IloscWplat = reader["payment_id"].ToString() == string.Empty
-                            ? "brak"
-                            : reader["payment_id"].ToString();
+                        //kontrahent.Zamowienie.IloscWplat = reader["payment_id"].ToString() == string.Empty
+                        //    ? "brak"
+                        //    : reader["payment_id"].ToString();//jakie ilosc wplat toz to jest id rodzaju platnosci!
+                        kontrahent.Zamowienie.WplataRodzaj = int.Parse(reader["payment_id"].ToString()); //== string.Empty
+                            //? "0"
+                            //: reader["payment_id"].ToString();
+                        kontrahent.Zamowienie.DostawaKwota = reader["postage_price"].ToString() == string.Empty
+                            ? "0"
+                            : reader["postage_price"].ToString();
+                        //kontrahent.Zamowienie.DostawaRodzaj = int.Parse(reader["postage_id"].ToString());
+                        int dostawa_id = int.Parse(reader["postage_id"].ToString());
+                        kontrahent.Zamowienie.DostawaRodzaj = dostawy.Where(d => d.Value.Equals(dostawa_id)).Select(p => p.Key).FirstOrDefault();
+                        kontrahent.Zamowienie.FakturaKoncowaNumer = reader["faktura_koncowa_numer"].ToString();
+
+                        kontrahent.Zamowienie.KwotaDoZaplaty = double.Parse(kontrahent.Zamowienie.WartoscProduktu) + double.Parse(kontrahent.Zamowienie.DostawaKwota);
                     }
                 }
             }
@@ -504,42 +621,40 @@ namespace subiekt_sfera_test
         /// Metoda odpytuje baze sklepu i zwraca z ostatniego rekordu tabeli zamowien jego id
         /// </summary>
         /// <returns>Zwraca id zamowienia</returns>
-        public static void WczytajZamowienie(string id)
-        {
-            var zamowienie = new Zamowienie();
-            var portalGamesConnString = new MySqlConnectionStringBuilder
-            {
-                Server = ConfigConnection.PortalGamesServer,
-                UserID = ConfigConnection.PortalGamesUser,
-                Password = ConfigConnection.PortalGamesPassword,
-                Database = ConfigConnection.PortalGamesBaza
-            };
+        //public static void WczytajZamowienie(string id)
+        //{
+        //    var zamowienie = new Zamowienie();
+        //    //var portalGamesConnString = new MySqlConnectionStringBuilder
+        //    //{
+        //    //    Server = ConfigConnection.PortalGamesServer,
+        //    //    UserID = ConfigConnection.PortalGamesUser,
+        //    //    Password = ConfigConnection.PortalGamesPassword,
+        //    //    Database = ConfigConnection.PortalGamesBaza
+        //    //};
 
-            var sqlCommand = "select * from baza8706_devportalgames.`order`where id = " + id + ";";
-            using (var conn = new MySqlConnection(portalGamesConnString.ToString()))
-            {
-                using (var cmd = conn.CreateCommand())
-                {
-                    cmd.CommandText = sqlCommand;
+        //    var sqlCommand = "select * from baza8706_devportalgames.`order`where id = " + id + ";";
+        //    using (var conn = new MySqlConnection(portalGamesConnString.ToString()))
+        //    {
+        //        using (var cmd = conn.CreateCommand())
+        //        {
+        //            cmd.CommandText = sqlCommand;
 
-                    conn.Open();
-                    var reader = cmd.ExecuteReader();
+        //            conn.Open();
+        //            var reader = cmd.ExecuteReader();
 
-                    while (reader.Read())
-                    {
-                        zamowienie.IdZamowienia = reader["id"].ToString() == string.Empty
-                            ? "brak"
-                            : reader["id"].ToString();
-                        zamowienie.WplaconaKwota = reader["paid_price"].ToString() == string.Empty
-                            ? "brak"
-                            : reader["paid_price"].ToString();
-                        zamowienie.KwotaDoZaplaty = reader["sum"].ToString() == string.Empty
-                            ? "brak"
-                            : reader["sum"].ToString();
-                    }
-                }
-            }
-        }
+        //            while (reader.Read())
+        //            {
+        //                zamowienie.IdZamowienia = int.Parse(reader["id"].ToString());
+        //                zamowienie.WplaconaKwota = reader["paid_price"].ToString() == string.Empty
+        //                    ? "brak"
+        //                    : reader["paid_price"].ToString();
+        //                zamowienie.KwotaDoZaplaty = reader["sum"].ToString() == string.Empty
+        //                    ? "brak"
+        //                    : reader["sum"].ToString();
+        //            }
+        //        }
+        //    }
+        //}
 
         /// <summary>
         /// Metoda integrująca sklep internetowy z Subiektem. Najpierw pobiera ostatnie zamówienie z bazy sklepu internetowego 
@@ -549,30 +664,59 @@ namespace subiekt_sfera_test
         /// a jeśli kwota jest pełna - to znaczy jeśli produkt został w pełni opłacony to wystawia fakturę zaliczkowo końcową
         /// </summary>
         /// <param name="sgt">Obiekt klasy InsERT.Subiekt</param>
-        public static void ZakupProces(InsERT.Subiekt sgt)
+        public static void ZakupProces(InsERT.Subiekt sgt, int order_id)
         {
-            var kontrahent = PobierzKontrahenta();
+            //Console.WriteLine("Zakup Proces order_id: "+order_id);
+            var kontrahent = PobierzKontrahenta(order_id);
 
-            DodajKontrahenta(sgt, kontrahent.Nazwa, kontrahent.Id, kontrahent.Miasto, kontrahent.Ulica, 1,
-                kontrahent.MiastoKod, kontrahent.Imie, kontrahent.Nazwisko);
-            var kontrahentSubiekt = sgt.Kontrahenci.Wczytaj(kontrahent.Id);
-            int idkontrahentaSubiekt = kontrahentSubiekt.Identyfikator();
-
-            if (Convert.ToDouble(kontrahent.Zamowienie.WplaconaKwota) > 0)
+            ///Nalezy sprawdzac czy faktura koncowa zostala juz wystawiona, jesli tak to zakonczyc na tym.
+            if (kontrahent != null)
             {
-                if (!SprawdzCzyZamowienieJuzIstnieje(sgt, kontrahent.NumerZamowienia))
+                if (string.IsNullOrEmpty(kontrahent.Zamowienie.FakturaKoncowaNumer))
                 {
-                    var listaProduktow = PobierzListeProduktowZZamowienia(kontrahent.IdZakupu);
-                    DodajZamowienie(sgt, idkontrahentaSubiekt, listaProduktow, kontrahent.IdZakupu);
-                    kontrahent.NumerZamowienia = NumerZamowienia;
+                    //Console.WriteLine("kontrahent != null");
+                    int panstwo_id = 1;
+                    if (!string.IsNullOrEmpty(kontrahent.PanstwoKod))
+                    {
+                        panstwo_id =
+                            panstwa.Where(p => p.Value.Equals(kontrahent.PanstwoKod)).Select(p => p.Key).FirstOrDefault();
+                    }
+
+                    DodajKontrahenta(sgt, kontrahent.Nazwa, kontrahent.Id, kontrahent.Miasto, kontrahent.Ulica, panstwo_id,
+                        kontrahent.MiastoKod, kontrahent.Imie, kontrahent.Nazwisko);
+                    var kontrahentSubiekt = sgt.Kontrahenci.Wczytaj(kontrahent.Id);
+                    int idkontrahentaSubiekt = kontrahentSubiekt.Identyfikator();
+
+                    //Console.WriteLine("kontrahent.Zamowienie.WplaconaKwota: "+ kontrahent.Zamowienie.WplaconaKwota);
+                    if (Convert.ToDouble(kontrahent.Zamowienie.WplaconaKwota) > 0)
+                    {
+                        if (!SprawdzCzyZamowienieJuzIstnieje(sgt, kontrahent.NumerZamowienia))
+                        {
+                            //Console.WriteLine("Zamowienie istnieje!");
+                            var listaProduktow = PobierzListeProduktowZZamowienia(kontrahent.IdZakupu);
+                            //Console.WriteLine("lista produktow.Count: "+listaProduktow.Count());
+                            DodajZamowienie(sgt, idkontrahentaSubiekt, listaProduktow, kontrahent.IdZakupu, kontrahent);
+                            kontrahent.NumerZamowienia = NumerZamowienia;
+                        }
+                        //Console.WriteLine("zamowienie juz istnieje");
+                        var kwota = Convert.ToDecimal(kontrahent.Zamowienie.WplaconaKwota);
+                        WystawFaktureZaliczkowa(sgt, kontrahent.NumerZamowienia, kontrahent.Zamowienie.WplataRodzaj, kwota);
+                    }
+                    ///Jesli wplacona kwota jest ROWNA kwocie do zaplaty to wystawiac fakture koncowa, 
+                    ///jesli mniejsza to idzie faktura zaliczeniowa, 
+                    ///jesli większa to nie wrzucac ani faktury zaliczeniowej ani koncowej tylko oznaczyc zamowienie, ze jest blad
+                    ///W platnosci gotowka i karta bedzie tylko 1 faktura zaliczeniowa
+                    ///W platnosci przelewem moze wystapic wiele faktur zaliczeniowych
+                    if (Convert.ToDouble(kontrahent.Zamowienie.WplaconaKwotaSum) >=
+                        Convert.ToDouble(kontrahent.Zamowienie.KwotaDoZaplaty))
+                    {
+                        WystawFaktureZaliczkowaKoncowa(sgt, kontrahent);//kontrahent.NumerZamowienia
+                    }
                 }
-                var kwota = Convert.ToDecimal(kontrahent.Zamowienie.WplaconaKwota);
-                WystawFaktureZaliczkowa(sgt, kontrahent.NumerZamowienia, "przelew", kwota);
             }
-            if (Convert.ToDouble(kontrahent.Zamowienie.WplaconaKwotaSum) >=
-                Convert.ToDouble(kontrahent.Zamowienie.KwotaDoZaplaty))
+            else
             {
-                WystawFaktureZaliczkowaKoncowa(sgt, kontrahent.NumerZamowienia);
+                //Console.WriteLine("Kontrahent == null");
             }
         }
 
@@ -585,13 +729,13 @@ namespace subiekt_sfera_test
         {
             var listaProduktow = new List<Produkt>();
 
-            var portalGamesConnString = new MySqlConnectionStringBuilder
-            {
-                Server = ConfigConnection.PortalGamesServer,
-                UserID = ConfigConnection.PortalGamesUser,
-                Password = ConfigConnection.PortalGamesPassword,
-                Database = ConfigConnection.PortalGamesBaza
-            };
+            //var portalGamesConnString = new MySqlConnectionStringBuilder
+            //{
+            //    Server = ConfigConnection.PortalGamesServer,
+            //    UserID = ConfigConnection.PortalGamesUser,
+            //    Password = ConfigConnection.PortalGamesPassword,
+            //    Database = ConfigConnection.PortalGamesBaza
+            //};
 
             var sqlCommand = "select * from order_item where order_id = " + idZamowienia + ";";
             using (var conn = new MySqlConnection(portalGamesConnString.ToString()))
@@ -631,20 +775,31 @@ namespace subiekt_sfera_test
                 Database = ConfigConnection.PortalGamesBaza
             };
 
-            var sqlCommand = "UPDATE baza8706_devportalgames.`order` SET order_name = '" + zamowienie.NumerZamowienia +
-                             "' WHERE id = " + zamowienie.IdZamowienia + ";";
+            Console.WriteLine("zamowienie.NumerZamowienia: "+ zamowienie.NumerZamowienia);
+            Console.WriteLine("zamowienie.IdZamowienia: "+ zamowienie.IdZamowienia);
+
+            //var sqlCommand = "UPDATE baza8706_devportalgames.`order` SET order_name = '" + zamowienie.NumerZamowienia +
+            //                 "' WHERE id = " + zamowienie.IdZamowienia + ";";
+
+            var sqlCommand = "UPDATE baza8706_devportalgames.`order` SET order_name = @numer_zamowienia" +
+                 " WHERE id = @order_id";
+
             using (var conn = new MySqlConnection(portalGamesConnString.ToString()))
             {
                 using (var cmd = conn.CreateCommand())
                 {
+                    cmd.Parameters.AddWithValue("order_id", zamowienie.IdZamowienia);
+                    cmd.Parameters.AddWithValue("numer_zamowienia", zamowienie.NumerZamowienia);
                     cmd.CommandText = sqlCommand;
 
                     conn.Open();
-                    var reader = cmd.ExecuteReader();
 
-                    while (reader.Read())
-                    {
-                    }
+                    cmd.ExecuteNonQuery();
+                    //var reader = cmd.ExecuteReader();
+
+                    //while (reader.Read())
+                    //{
+                    //}
                 }
             }
         }
@@ -652,7 +807,7 @@ namespace subiekt_sfera_test
         /// Metoda dodaje do bazy sklepu intenetowego produkt. 
         /// </summary>
         /// <param name="modify_user_id">id usera ktory dodał ten produkt? W bazie wartosci są w zakresie od 0 do 3</param>
-        /// <param name="tax_rate">Nie wiem co to. W bazie czesto wystepuje jako liczba 23</param>
+        /// <param name="tax_rate">Nie wiem co to. W bazie czesto wystepuje jako liczba 23. Pewnie podatek</param>
         /// <param name="price">Cena produktu</param>
         /// <param name="price_old">Stara cena produktu</param>
         /// <param name="delivery_cost">Koszt dostawy</param>
@@ -660,7 +815,7 @@ namespace subiekt_sfera_test
         /// <param name="label_preorder">Wartość 0 lub 1. Czy produkt jest jako preorder</param>
         /// <param name="code">Unikalny kod produktu</param>
         /// <param name="custom_id">Nie wiem za bardzo co to. Czesto wystepuje w wielkiej liczbie (2900000) lub 0 </param>
-        /// <param name="amount">Czesto wystepuje w licznie 35029</param>
+        /// <param name="amount">Czesto wystepuje w licznie 35029. Pewnie ilosc</param>
         /// <param name="weight">Waga produktu </param>
         /// <param name="packaging">Forma pokowania - 'karton','paleta'</param>
         /// <param name="packaging_amount">Prawie zawsze wysteuje w formie 0 ale moze tez przyjac 1</param>

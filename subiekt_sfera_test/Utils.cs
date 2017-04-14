@@ -758,5 +758,10 @@ namespace subiekt_sfera_test
                 }
             }
         }
+
+        public static void ProduktyMagayn(InsERT.Subiekt sgt)
+        {
+            
+        }
     }
 }

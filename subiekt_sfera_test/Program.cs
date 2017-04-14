@@ -54,8 +54,9 @@ namespace subiekt_sfera_test
             //            Utils.WystawFaktureZaliczkowaKoncowa(sgt, "ZK 7/SF/MAG/2017");
 //            var przykladowaListaProduktow = new List<int> { 23, 4 }; Utils.WydanieZewnetrzne(sgt,4, przykladowaListaProduktow);
 //            Utils.ZakupProces(sgt);
-            Utils.WstapProduktDoBazySklepu("3", "23", "123", "333", "8", "1", "1", "krystian4321", "2903757", "35029", "8765",
-                "karton", "0", "krystian plansza", "gra planszowa");
+//            Utils.WstapProduktDoBazySklepu("3", "23", "123", "333", "8", "1", "1", "maciek4321", "2903757", "35029", "8765",
+//                "karton", "0", "krystian plansza", "gra planszowa");
+            Utils.WstapProduktDoBazySklepu("3","23","17","18","8","1","0","meciej124","5","6","100","karton","1","md17","cos skrobaj");
 //            Utils.DodajZamowienie2(sgt,4, przykladowaListaProduktow);
             Console.WriteLine("KONIEC");
             Console.ReadKey();

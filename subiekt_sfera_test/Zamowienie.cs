@@ -20,7 +20,11 @@ namespace subiekt_sfera_test
         public string WartoscProduktu { get; set; }
         public string DostawaKwota { get; set; }
         public string DostawaRodzaj { get; set; }
+        public int? DostawaRodzajId { get; set; }
         public int WplataRodzaj { get; set; }
         public string FakturaKoncowaNumer { get; set; }
+        public int PaymentError { get; set; }
+        public string Currency { get; set; }
+        public DateTime DataWplaty { get; set; }
     }
 }

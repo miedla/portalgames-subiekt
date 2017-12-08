@@ -2131,5 +2131,10 @@ namespace subiekt_sfera_test
 
             return uriPlikuZfakurami;//sciezkaPlikuZfakturami;
         }
+
+        public static void ProduktyMagayn(InsERT.Subiekt sgt)
+        {
+            
+        }
     }
 }
